@@ -1,11 +1,6 @@
 ※まだ準備中
-# 概要
-VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
-※VOICEVOXは付属しません、自分度用意しましょう
-
 # zBot
 VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
-※zはずんだもんから
 ※VOICEVOXは付属しません、自分度用意しましょう
 
 # Description
@@ -14,14 +9,14 @@ VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
 # Dependencies
 - Node.js v18
 - npm install で下記を導入
-    "@discordjs/opus"
-    "@discordjs/voice"
-    "axios": "^1.5.0"
-    "discord.js"
-    "dotenv"
-    "ffmpeg-static"
-    "openai"
-    "sodium"
+  - "@discordjs/opus"
+  - "@discordjs/voice"
+  - "axios": "^1.5.0"
+  - "discord.js"
+  - "dotenv"
+  - "ffmpeg-static"
+  - "openai"
+  - "sodium"
 
 # Author
 kmatsumoto630823
