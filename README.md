@@ -12,7 +12,7 @@ VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
 - npm install で下記を導入
   - "@discordjs/opus"
   - "@discordjs/voice"
-  - "axios": "^1.5.0"
+  - "axios"
   - "discord.js"
   - "dotenv"
   - "ffmpeg-static"
