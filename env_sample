@@ -1,0 +1,21 @@
+token = "Your token"
+serverIds = "Your server IDs separated by semicolon(;)"
+
+# voiceServers = "http://localhost:50021?engine=VOICEVOX;http://localhost:50025?engine=SHAREVOX"
+voiceServers = "http://localhost:50021?engine=VOICEVOX"
+
+voiceServerTextLengthLimit = 128
+
+defaultSpeakerEngine = "VOICEVOX" #VOICEVOX
+defaultSpeakerId = 3 #ずんだもん（ノーマル）
+
+speakerSpeedScaleUpperLimit = 1.50
+speakerSpeedScaleLowerLimit = 0.50
+
+speakerPitchScaleUpperLimit = 0.15
+speakerPitchScaleLowerLimit = -0.15
+
+samplingRate = 48000
+
+serverConfigsDir = "./guild_configs"
+serverDictionaryDir = "./guild_dictionaries"
