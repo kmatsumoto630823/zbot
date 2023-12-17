@@ -41,6 +41,7 @@ node.jsが実行できる環境を用意してください
 プロジェクトフォルダにファイル一式をコピーしてください  
 env_sampleを参考にご自分の環境にあった.envをプロジェクトフォルダのトップに作成してください  
 ディレクトリ「guild_configs」と「guild_dictionaries」をプロジェクトフォルダのトップに作成してください  
+node zBot.jsでBotを実行してください
 
 # Author
 kmatsumoto630823
