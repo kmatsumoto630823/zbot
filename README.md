@@ -2,7 +2,7 @@
 # zBot
 VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
 
-※VOICEVOXは付属しません、自分度用意しましょう
+※VOICEVOXのエンジンは付属しません、自分度用意してください
 
 # Description（スラッシュコマンド）
 /connect  
@@ -33,8 +33,14 @@ VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
   - "discord.js"
   - "dotenv"
   - "ffmpeg-static"
-  - "openai"
   - "sodium"
+
+# INSTALL
+node.jsが実行できる環境を用意してください  
+プロジェクトフォルダを用意して上記の依存するモジュールをnpmで導入してください  
+プロジェクトフォルダにファイル一式をコピーしてください  
+env_sampleを参考にご自分の環境にあった.envをプロジェクトフォルダのトップに作成してください  
+ディレクトリ「guild_configs」と「guild_dictionaries」をプロジェクトフォルダのトップに作成してください  
 
 # Author
 kmatsumoto630823
