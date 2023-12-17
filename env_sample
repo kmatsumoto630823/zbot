@@ -1,3 +1,4 @@
+# Edit and Rename ".env"
 token = "Your token"
 serverIds = "Your server IDs separated by semicolon(;)"
 
@@ -6,8 +7,9 @@ voiceServers = "http://localhost:50021?engine=VOICEVOX"
 
 voiceServerTextLengthLimit = 128
 
-defaultSpeakerEngine = "VOICEVOX" #VOICEVOX
-defaultSpeakerId = 3 #ずんだもん（ノーマル）
+#VOICEVOX:ずんだもん（ノーマル）
+defaultSpeakerEngine = "VOICEVOX"
+defaultSpeakerId = 3
 
 speakerSpeedScaleUpperLimit = 1.50
 speakerSpeedScaleLowerLimit = 0.50
