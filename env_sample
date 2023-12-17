@@ -7,7 +7,7 @@ voiceServers = "http://localhost:50021?engine=VOICEVOX"
 
 voiceServerTextLengthLimit = 128
 
-#VOICEVOX:ずんだもん（ノーマル）
+# VOICEVOX:ずんだもん（ノーマル）
 defaultSpeakerEngine = "VOICEVOX"
 defaultSpeakerId = 3
 
