@@ -48,6 +48,25 @@ env_sampleを参考にご自分の環境にあった.envをプロジェクトフ
 ディレクトリ「guild_configs」と「guild_dictionaries」をプロジェクトフォルダのトップに作成してください  
 node zBot.jsでBotを実行してください
 
+```
+$ mkdir your_bot_dir
+$ cd your_bot_dir
+$ git clone https://github.com/kmatsumoto630823/zbot .
+
+$ npm install discord.js
+$ npm install @discordjs/voice
+$ npm install @discordjs/opus
+$ npm install ffmpeg-static
+$ npm install sodium
+$ npm install axios
+$ npm install dotenv
+
+$ mkdir guild_configs
+$ mkdir guild_configs
+$ cp env_sample .env
+$ vi .env
+```
+
 # Author
 kmatsumoto630823
 
