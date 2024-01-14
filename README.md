@@ -67,6 +67,9 @@ $ cp env_sample .env
 $ vi .env
 ```
 
+```.env
+```
+
 # Author
 kmatsumoto630823
 
