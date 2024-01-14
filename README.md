@@ -67,7 +67,7 @@ $ npm install axios
 $ npm install dotenv
 
 $ mkdir guild_configs
-$ mkdir guild_configs
+$ mkdir guild_dictionaries
 $ cp env_sample .env
 $ vi .env
 ```
