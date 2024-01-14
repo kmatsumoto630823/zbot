@@ -40,13 +40,17 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
   - "ffmpeg-static"
   - "sodium"
 
+@discordjs/voiceの依存パッケージは代替できるものがあるので各自の判断で読み替えること  
+https://discordjs.guide/voice/#extra-dependencies
+
 # INSTALL
-node.jsが実行できる環境を用意してください  
-プロジェクトフォルダを用意して上記の依存するモジュールをnpmで導入してください  
-プロジェクトフォルダにファイル一式をコピーしてください  
-env_sampleを参考にご自分の環境にあった.envをプロジェクトフォルダのトップに作成してください  
-ディレクトリ「guild_configs」と「guild_dictionaries」をプロジェクトフォルダのトップに作成してください  
-node zBot.jsでBotを実行してください
+node.js環境を用意  
+Bot用のディレクトリ作成※以降はこのディレクトリで作業  
+gitコマンドでファイル一式を配置  
+必要なパッケージをnpmコマンドで導入  
+ディレクトリ「guild_configs」と「guild_dictionaries」を作成  
+env_sampleを参考にご各自の環境に適した.envを作成  
+node zBot.jsでBotを実行してください  
 
 ```
 $ mkdir your_bot_dir
@@ -67,7 +71,30 @@ $ cp env_sample .env
 $ vi .env
 ```
 
-```.env
+```
+# Edit and Rename ".env"
+token = "Your token"
+serverIds = "Your server IDs separated by semicolon(;)"
+
+# voiceServers = "http://localhost:50021?engine=VOICEVOX;http://localhost:50025?engine=SHAREVOX"
+voiceServers = "http://localhost:50021?engine=VOICEVOX"
+
+voiceServerTextLengthLimit = 128
+
+# VOICEVOX:ずんだもん（ノーマル）
+defaultSpeakerEngine = "VOICEVOX"
+defaultSpeakerId = 3
+
+speakerSpeedScaleUpperLimit = 1.50
+speakerSpeedScaleLowerLimit = 0.50
+
+speakerPitchScaleUpperLimit = 0.15
+speakerPitchScaleLowerLimit = -0.15
+
+samplingRate = 48000
+
+serverConfigsDir = "./guild_configs"
+serverDictionaryDir = "./guild_dictionaries"
 ```
 
 # Author
