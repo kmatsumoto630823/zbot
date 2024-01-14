@@ -52,6 +52,7 @@ gitコマンドでファイル一式を配置
 env_sampleを参考にご各自の環境に適した.envを作成  
 node zBot.jsでBotを実行してください  
 
+Linux上での実行例
 ```
 $ mkdir your_bot_dir
 $ cd your_bot_dir
@@ -70,6 +71,13 @@ $ mkdir guild_configs
 $ cp env_sample .env
 $ vi .env
 ```
+
+viが立ち上がるので各自の環境に合わせて編集してください  
+tokenにはBotアカウントのトークンを  
+serverIdsには対象サーバーのIDをセミコロン区切りで記載  
+voiceServersにはhttp://[ホスト名]:[ポート]?engine=[エンジン名]の形で記載  
+※VOICEVOX互換のAPIならセミコロン区切りで複数指定可能、[エンジン名]は内部的な識別に使うので同じものを指定しないでください
+
 
 ```
 # Edit and Rename ".env"
