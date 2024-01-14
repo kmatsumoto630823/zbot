@@ -5,7 +5,8 @@ const envDefaultSpeakerId = parseInt(process.env.defaultSpeakerId);
 const envServerConfigsDir = process.env.serverConfigsDir;
 const envServerDictionaryDir = process.env.serverDictionaryDir;
 
-module.exports = {
+
+const zBotData = {
     "zBotServerConfigs": {},
     "zBotServerDictionaries": {},
     "zBotServerPlayers": {},
@@ -92,4 +93,6 @@ module.exports = {
         return config;
     }
 };
+
+module.exports = zBotData;
  

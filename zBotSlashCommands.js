@@ -6,9 +6,8 @@ const envSpeakerSpeedScaleLowerLimit = Number(process.env.speakerSpeedScaleLower
 const envSpeakerPitchScaleUpperLimit = Number(process.env.speakerPitchScaleUpperLimit);
 const envSpeakerPitchScaleLowerLimit = Number(process.env.speakerPitchScaleLowerLimit);
 
-const envOpenapiKey = process.env.openapiKey;
 
-module.exports = [
+const zBotSlashCommands = [
     {
         "name": "connect",
         "description": "zBotを接続します",
@@ -41,7 +40,7 @@ module.exports = [
             const voiceCannelId = interaction.options.getChannel("voice").id;
             const adapterCreator = interaction.guild.voiceAdapterCreator;
     
-            const {joinVoiceChannel} = require("@discordjs/voice");
+            const { joinVoiceChannel } = require("@discordjs/voice");
             const connection = joinVoiceChannel({
                 "channelId": voiceCannelId,
                 "guildId": guildId,
@@ -55,7 +54,7 @@ module.exports = [
                 return;
             }
     
-            const {createAudioPlayer, NoSubscriberBehavior} = require("@discordjs/voice");
+            const { createAudioPlayer, NoSubscriberBehavior } = require("@discordjs/voice");
             const player = createAudioPlayer({
                 behaviors: {
                   noSubscriber: NoSubscriberBehavior.Pause,
@@ -117,12 +116,12 @@ module.exports = [
                 message += speaker.engine + "：" + speaker.speakerName + "（" + speaker.styleName  + "）" + "：" + String(speaker.id) + "\r\n";
             }
  
-            const {AttachmentBuilder} = require("discord.js");
+            const { AttachmentBuilder } = require("discord.js");
 
             const buffer = Buffer.from(message);
-            const attachment = new AttachmentBuilder(buffer, {"name": "speakers.txt"});
+            const attachment = new AttachmentBuilder(buffer, { "name": "speakers.txt" });
 
-            interaction.reply({"content": "話者IDの一覧を作成しました", "files": [attachment]})
+            interaction.reply({ "content": "話者IDの一覧を作成しました", "files": [attachment] })
             .catch((error) => { console.log(error); });
 
             return;
@@ -165,28 +164,16 @@ module.exports = [
                 "max_value": envSpeakerPitchScaleUpperLimit,
                 "min_value": envSpeakerPitchScaleLowerLimit,
                 "required": false
-            },
-
-            
-            {
-                "type": 3,
-                "name": "target",
-                "description": "変更する対象を選択（あなたorサーバー）してください",
-                "required": false,
-                "choices": [
-                    { "name": "あなた", "value": "あなた" },
-                    { "name": "サーバー", "value": "サーバー" }
-                ]
-            },
+            }
 
         ],
         
         "excute": async function(interaction, zBotData){
-            const {zBotServerConfigs} = zBotData;
+            const { zBotServerConfigs } = zBotData;
 
             const guildId = interaction.guildId;
         
-            const {getVoiceConnection} = require("@discordjs/voice");
+            const { getVoiceConnection } = require("@discordjs/voice");
             const connection = getVoiceConnection(guildId);
         
             if(!connection){
@@ -200,13 +187,9 @@ module.exports = [
             const speakerId = interaction.options.getInteger("id");
             const speakerSpeedScale = interaction.options.getNumber("speed");
             const speakerPitchScale = interaction.options.getNumber("pitch");
-            const speakerTarget = interaction.options.getString("target");
 
-            const { memberId, memberName } =
-                (speakerTarget === "サーバー") ?
-                    { "memberId": interaction.client.user.id, "memberName": "サーバー" } :
-                    { "memberId": interaction.member.id , "memberName": interaction.member.displayName + "さん" }
-            ;
+            const memberId = interaction.member.id;
+            const memberName = interaction.member.displayName + "さん";
         
             const speakers = await getSpeakersWithStyles()
             .catch((error) => { console.log(error); });
@@ -251,13 +234,17 @@ module.exports = [
         "autocomplete": async function(interaction, zBotData){
             const focusedOption = interaction.options.getFocused(true);
             if(focusedOption.name !== "id"){
-                interaction.respond([]);
+                interaction.respond([])
+                .catch((error) => { console.log(error); });
+
                 return;
             }
         
             const engine = interaction.options.getString("engine");
             if(!engine){
-                interaction.respond([]);
+                interaction.respond([])
+                .catch((error) => { console.log(error); });
+
                 return;
             }
         
@@ -266,13 +253,16 @@ module.exports = [
         
         
             if(!speakers){
-                interaction.respond([]);
+                interaction.respond([])
+                .catch((error) => { console.log(error); });
+
                 return;               
             }
         
             const filtered = speakers.filter(
                 (x) => (x.engine === engine) && x.fqn.includes(!focusedOption.value ? "" : focusedOption.value)
             ); 
+
             const choices = filtered.map(
                 (x) => ({ "name": x.fqn, "value": x.id })
             );
@@ -282,7 +272,8 @@ module.exports = [
             }
 
 
-            interaction.respond(choices);
+            interaction.respond(choices)
+            .catch((error) => { console.log(error); });
             return;        
         }
 
@@ -293,11 +284,11 @@ module.exports = [
         "description": "話者をランダムに変更します",
         
         "excute": async function(interaction, zBotData){
-            const {zBotServerConfigs} = zBotData;
+            const { zBotServerConfigs } = zBotData;
 
             const guildId = interaction.guildId;
         
-            const {getVoiceConnection} = require("@discordjs/voice");
+            const { getVoiceConnection } = require("@discordjs/voice");
             const connection = getVoiceConnection(guildId);
         
             if(!connection){
@@ -366,11 +357,11 @@ module.exports = [
         ],
 
         "excute": async function(interaction, zBotData){
-            const {zBotServerDictionaries} = zBotData;
+            const { zBotServerDictionaries } = zBotData;
 
             const guildId = interaction.guildId;
 
-            const {getVoiceConnection} = require("@discordjs/voice");
+            const { getVoiceConnection } = require("@discordjs/voice");
             const connection = getVoiceConnection(guildId);
     
             if(!connection){
@@ -424,11 +415,11 @@ module.exports = [
 
         
         "excute": async function(interaction, zBotData){
-            const {zBotServerConfigs} = zBotData;
+            const { zBotServerConfigs } = zBotData;
 
             const guildId = interaction.guildId;
         
-            const {getVoiceConnection} = require("@discordjs/voice");
+            const { getVoiceConnection } = require("@discordjs/voice");
             const connection = getVoiceConnection(guildId);
         
             if(!connection){
@@ -468,7 +459,7 @@ module.exports = [
 
             const guildId = interaction.guildId;
 
-            const {getVoiceConnection} = require("@discordjs/voice");
+            const { getVoiceConnection } = require("@discordjs/voice");
             const connection = getVoiceConnection(guildId);
     
             if(!connection){
@@ -478,7 +469,7 @@ module.exports = [
                 return;
             }
 
-            const {AttachmentBuilder} = require("discord.js");
+            const { AttachmentBuilder } = require("discord.js");
 
             const server = {
                 "config": zBotServerConfigs[guildId],
@@ -488,7 +479,7 @@ module.exports = [
             const buffer = Buffer.from(JSON.stringify(server, null, 2));
             const attachment = new AttachmentBuilder(buffer, {"name": "zbot.json"});
 
-            interaction.reply({"content": "zBotの設定をエクスポートしました", "files": [attachment]})
+            interaction.reply({ "content": "zBotの設定をエクスポートしました", "files": [attachment] })
             .catch((error) => { console.log(error); });
 
             return;
@@ -502,7 +493,7 @@ module.exports = [
         "excute": async function(interaction, zBotData){
             const guildId = interaction.guildId;
 
-            const {getVoiceConnection} = require("@discordjs/voice");
+            const { getVoiceConnection } = require("@discordjs/voice");
             const connection = getVoiceConnection(guildId);
     
             if(!connection){
@@ -532,7 +523,7 @@ module.exports = [
 
         "excute": async function(interaction, zBotData){
             let message = "";
-            for(const command of module.exports){
+            for(const command of zBotSlashCommands){
                 message += "/" + command.name + "\r\n";
                 message += "　・・・" + command.description + "\r\n";
             }
@@ -561,17 +552,16 @@ async function getSpeakersWithStyles(){
 
         if(!engine) return;
 
-        const {default: axios} = require("axios");
-        const rpc = axios.create({ "baseURL": baseURL, "proxy": false});
+        const { default: axios } = require("axios");
+        const rpc = axios.create({ "baseURL": baseURL, "proxy": false });
 
         const response = await rpc.get("speakers", {
-            headers:{"accept" : "application/json"},
+            headers: { "accept" : "application/json" },
         })
         .catch((error) => { console.log(error); });
 
-        if(!response || response.status !== 200){
-            return;
-        }
+        if(!response) return;
+        if(response.status !== 200) return;
         
         const speakers = JSON.parse(JSON.stringify(response.data));
 
@@ -601,7 +591,7 @@ function getVoiceServerEngineCoices(){
 
         if(!engine) return;
 
-        choices.push({ "name": engine, "value": engine});
+        choices.push({ "name": engine, "value": engine });
     }
 
     return choices;
@@ -612,3 +602,5 @@ function zenkaku2Hankaku(str) {
         return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
     });
 }
+
+module.exports = zBotSlashCommands;

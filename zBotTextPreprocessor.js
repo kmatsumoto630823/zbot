@@ -1,6 +1,12 @@
-module.exports = function(orgText, dictionary){
+function zBotTextPreprocessor(orgText, dictionary){
     
     let text = orgText;
+
+    text = text
+        .replace(/(https?|ftp)(:\/\/[\w\/:%#\$&\?\(\)~\.=\+\-]+)/g, "")
+        .replace(/<(@!?|#|@&)[0-9]+>/g, "")
+                .replace(/(@everyone|@here)/g, "")
+    ;
 
     for(const key in dictionary){
         let before = key;
@@ -37,8 +43,7 @@ module.exports = function(orgText, dictionary){
     const emojiRegex = require("./utils/emojiRegex");
 
     text = text
-        .replace(/(https?|ftp)(:\/\/[\w\/:%#\$&\?\(\)~\.=\+\-]+)/g, "")
-        .replace(/<:[a-zA-Z0-9_]+:[0-9]+>|:[a-zA-Z0-9_]+:/g, "")
+        .replace(/<:[a-zA-Z0-9_]+:[0-9]+>/g, "")
         .replace(emojiRegex(), "")
     ;
     
@@ -55,7 +60,8 @@ module.exports = function(orgText, dictionary){
         retTextLines.push(splited);
     }
 
-    console.log(retTextLines);
     return retTextLines;
 
 };
+
+module.exports = zBotTextPreprocessor;

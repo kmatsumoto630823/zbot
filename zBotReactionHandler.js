@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-module.exports = async function(reaction, user, zBotData){
+async function zBotReactionHandler(reaction, user, zBotData){
     const {
         zBotServerConfigs, 
         zBotServerDictionaries,
@@ -15,7 +15,7 @@ module.exports = async function(reaction, user, zBotData){
     const memberId = user.id;
     const textChannelId = reaction.message.channel.id;
 
-    const {getVoiceConnection} = require("@discordjs/voice");
+    const { getVoiceConnection } = require("@discordjs/voice");
     const connection = getVoiceConnection(guildId);
 
     if(!connection) return;
@@ -29,13 +29,15 @@ module.exports = async function(reaction, user, zBotData){
     if(!zBotServerConfigs[guildId].isReactionSpeach) return;
 
     const conf = zBotServerConfigs[guildId].memberSpeakerConfigs;
+
     if(conf[memberId] === void 0){
         conf[memberId] = zBotData.makeDefaultSpeakerConfig();        
     }
 
     if(conf[memberId].id < 0) return;
 
-    const text = (reaction.emoji.id === null) ? reaction.emoji.name : "<:CustomEmoji:" + reaction.emoji.id + ">";
+    const text =
+        (reaction.emoji.id === null) ? reaction.emoji.name : "<:CustomEmoji:" + reaction.emoji.id + ">";
 
     const zBotTextPreprocessor = require("./zBotTextPreprocessor");
     const textLines = zBotTextPreprocessor(text, zBotServerDictionaries[guildId]);
@@ -49,3 +51,5 @@ module.exports = async function(reaction, user, zBotData){
     )
     .catch((error) => { console.log(error); });
 };
+
+module.exports = zBotReactionHandler;

@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-module.exports = async function(message, zBotData){
+async function zBotMessageHandler(message, zBotData){
     const {
         zBotServerConfigs, 
         zBotServerDictionaries,
@@ -8,21 +8,13 @@ module.exports = async function(message, zBotData){
         zBotServerPlayerQueues
     } = zBotData;
 
-    if(message.author.bot){
-        if(message.member.id !==  message.client.user.id){
-            return;
-        }
-    }
-
-
-    const {MessageType} = require("discord.js");
-    if(message.type === MessageType.ChatInputCommand) return;
+    if(message.author.bot) return;
 
     const guildId = message.guildId;
     const memberId = message.member.id;
     const textChannelId = message.channel.id;
 
-    const {getVoiceConnection} = require("@discordjs/voice");
+    const { getVoiceConnection } = require("@discordjs/voice");
     const connection = getVoiceConnection(guildId);
 
     if(!connection) return;
@@ -36,7 +28,9 @@ module.exports = async function(message, zBotData){
 
     if(conf[memberId].id < 0) return;
 
-    const text = message.cleanContent;
+    //const text = message.cleanContent;
+    const text = message.content;
+    console.log(text);
 
     const zBotTextPreprocessor = require("./zBotTextPreprocessor");
     const textLines = zBotTextPreprocessor(text, zBotServerDictionaries[guildId]);
@@ -50,3 +44,5 @@ module.exports = async function(message, zBotData){
     )
     .catch((error) => { console.log(error); });
 };
+
+module.exports = zBotMessageHandler;
