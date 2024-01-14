@@ -20,7 +20,7 @@ const client = new Client({"intents": [
 client.once(Events.ClientReady, (cl) => {
 
     for(const id of envServerIds.split(";")){
-        cl.application.commands.set(zBotSlashCommands, id);
+        cl.application.commands.set(zBotSlashCommands, id.trim());
     }
 
 	console.log("Ready! (" + cl.user.tag + ")");
@@ -44,7 +44,8 @@ client.on(Events.InteractionCreate, async(interaction) => {
         command.excute(interaction, zBotData)
         .catch((error) => { console.log(error); });
     }
-    else if(interaction.isAutocomplete()){
+    
+    if(interaction.isAutocomplete()){
         command.autocomplete(interaction, zBotData)
         .catch((error) => { console.log(error); });
     }
