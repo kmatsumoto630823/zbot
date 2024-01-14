@@ -77,8 +77,6 @@ tokenにはBotアカウントのトークンを
 serverIdsには対象サーバーのIDをセミコロン区切りで記載  
 voiceServersにはhttp://[ホスト名]:[ポート]?engine=[エンジン名]の形で記載  
 ※VOICEVOX互換のAPIならセミコロン区切りで複数指定可能、[エンジン名]は内部的な識別に使うので同じものを指定しないでください
-
-
 ```
 # Edit and Rename ".env"
 token = "Your token"
@@ -103,6 +101,11 @@ samplingRate = 48000
 
 serverConfigsDir = "./guild_configs"
 serverDictionaryDir = "./guild_dictionaries"
+```
+
+準備ができたら実行
+```
+$ node zBot.js
 ```
 
 # Author
