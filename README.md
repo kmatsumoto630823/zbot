@@ -1,10 +1,10 @@
-※まだ準備中
+※名称が有名なマルウェアとかぶってるので変更を検討中
 # zBot
-VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
+VOICEVOXを利用したDiscord用読み上げ（TTS）Bot  
+※VOICEVOXのエンジンは付属しません、自分で用意してください  
+※また、DiscordのBotアカウントも自分で用意してください  
 
-※VOICEVOXのエンジンは付属しません、自分度用意してください
-
-# Description（スラッシュコマンド）
+# Help(slach commnad)
 /connect  
 　・・・zBotを接続します  
 /list  
@@ -25,7 +25,7 @@ VOICEVOXを利用したDiscord用読み上げ（TTS）Bot
 　・・・ヘルプを表示します  
 
 # Dependencies
-- Node.js v18
+- Node.js v20
 - npm install で下記を導入
   - "@discordjs/opus"
   - "@discordjs/voice"
