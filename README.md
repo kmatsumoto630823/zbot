@@ -43,7 +43,7 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 @discordjs/voiceの依存パッケージは代替できるものがあるので各自の判断で読み替えること  
 https://discordjs.guide/voice/#extra-dependencies
 
-# INSTALL
+# Install
 node.js環境を用意  
 Bot用のディレクトリ作成※以降はこのディレクトリで作業  
 gitコマンドでファイル一式を配置  
