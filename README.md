@@ -29,8 +29,9 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 　・・・ヘルプを表示します  
 
 # Dependencies
+- Redhat Enterprise Linux 9（Windows上ではまだ上手くいってない）
 - Node.js v20
-- npm install で下記を導入
+- NPM Packages
   - "@discordjs/opus"
   - "@discordjs/voice"
   - "axios"
