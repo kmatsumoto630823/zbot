@@ -8,7 +8,7 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 ※VOICEVOXのエンジンは付属しません、各自で用意してください  
 ※DiscordのBotアカウントも各自で用意してください  
 
-# Help(slach commnad)
+# Slach Commnad
 /connect  
 　・・・zBotを接続します  
 /list  
@@ -28,7 +28,7 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 /help  
 　・・・ヘルプを表示します  
 
-# Dependencies
+# Dependencies(というよりは自分の環境)
 - Redhat Enterprise Linux 9（Windows上ではまだ上手くいってない）
 - Node.js v20
 - NPM Packages
