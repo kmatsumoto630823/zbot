@@ -52,7 +52,7 @@ gitコマンドでファイル一式を配置
 env_sampleを参考にご各自の環境に適した.envを作成  
 node zBot.jsでBotを実行してください  
 
-Linux上での実行例
+## Linux上での実行例
 ```
 $ mkdir your_bot_dir
 $ cd your_bot_dir
