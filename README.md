@@ -29,16 +29,16 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 　・・・ヘルプを表示します  
 
 # Dependencies(というよりは自分の環境)
-- Redhat Enterprise Linux 9（Windows上ではまだ上手くいってない）
+- Redhat Enterprise Linux 9（Minimal + Development Tools）またはWindows 11
 - Node.js v20
 - NPM Packages
-  - "@discordjs/opus"
+  - "@discordjs/opus" ※Windowsの場合"opusscript"
   - "@discordjs/voice"
   - "axios"
   - "discord.js"
   - "dotenv"
   - "ffmpeg-static"
-  - "sodium"
+  - "sodium" ※Windowsの場合"tweetnacl"
 
 @discordjs/voiceの依存パッケージは代替できるものがあるので各自の判断で読み替えること  
 https://discordjs.guide/voice/#extra-dependencies
