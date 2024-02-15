@@ -1,21 +1,24 @@
 require("dotenv").config();
-
 const envVoiceServers = process.env.voiceServers;
 const envVoiceServerTextLengthLimit = parseInt(process.env.voiceServerTextLengthLimit);
 const envSamplingRate = parseInt(process.env.samplingRate);
 
+const crypto = require("crypto");
+const { setTimeout } = require("timers/promises");
+const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
 
-async function zBotTextToSpeech(textLines, speaker, player, queue)
+async function zBotTextToSpeech(splitedText, speaker, player, queue)
 {
-    const crypto = require("crypto");
+    //const crypto = require("crypto");
     const uuid = crypto.randomUUID();
 
     enQueue(queue, uuid);
 
-    let count = 60;
+    let count = 300;
+    
     while(queue[0] !== uuid){
-        const { setTimeout } = require("timers/promises");
-        await setTimeout(1000);
+        //const { setTimeout } = require("timers/promises");
+        await setTimeout(100);
 
         count--;
 
@@ -26,20 +29,20 @@ async function zBotTextToSpeech(textLines, speaker, player, queue)
     }
 
     const resources = [];
-    for(const text of textLines){
+
+    for(const text of splitedText){
         if(text.length > envVoiceServerTextLengthLimit) continue;
 
-        const resource = await getResource(text, speaker)
-        .catch((error) => { console.log(error); });
+        const resource = await makeSpeechResource(text, speaker)
+        .catch((error) => { console.error(error); });
 
         resources.push(resource);
     }
 
-    
-    const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
     for(const resource of resources){
+        //const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
         await entersState(player, AudioPlayerStatus.Idle, 60 * 1000)
-        .catch((error) => { console.log(error); });
+        .catch((error) => { console.error(error); });
 
         player.play(resource);
     }
@@ -49,22 +52,26 @@ async function zBotTextToSpeech(textLines, speaker, player, queue)
     return;
 }
 
-async function getResource(text, speaker){
+const { default: axios } = require("axios");
+const { Readable } = require("stream");
+const { createAudioResource, StreamType } = require("@discordjs/voice");
 
+async function makeSpeechResource(text, speaker){
     const server = getVoiceServers().find( (x) => { return x.engine === speaker.engine; });
 
-    const { default: axios } = require("axios");
+    //const { default: axios } = require("axios");
     const rpc = axios.create({ "baseURL": server.baseURL, "proxy": false });
 
     const response_audio_query = await rpc.post("audio_query?text=" + encodeURIComponent(text) + "&speaker=" + speaker.id, {
         headers:{ "accept": "application/json" },
     })
-    .catch((error) => { console.log(error); });
+    .catch((error) => { console.error(error); });
 
     if(!response_audio_query) return;
     if(response_audio_query.status !== 200) return;
 
     const audioQuery = JSON.parse(JSON.stringify(response_audio_query.data));
+
     audioQuery.speedScale = speaker.speedScale;
     audioQuery.pitchScale = speaker.pitchScale;
     audioQuery.outputSamplingRate = envSamplingRate;
@@ -76,31 +83,40 @@ async function getResource(text, speaker){
             "Content-Type": "application/json"
         }
     })
-    .catch((error) => { console.log(error); });
-
+    .catch((error) => { console.error(error); });
 
     if(!response_synthesis) return;
     if(response_synthesis.status !== 200) return;
 
-    const { Readable } = require("stream");
+    //const { Readable } = require("stream");
     const stream = new Readable();
+
     stream.push(response_synthesis.data);
     stream.push(null);
 
-    const { createAudioResource, StreamType } = require("@discordjs/voice");
-
-    return createAudioResource(stream, { inputType: StreamType.Arbitrary });
+    //const { createAudioResource, StreamType } = require("@discordjs/voice");
+    const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
+    
+    return resource;
 }
 
 function enQueue(queue, uuid){
-    queue.push(uuid);    
+    if(!queue) return;
+
+    queue.push(uuid);
+    return;
 }
 
 function deQueue(queue, uuid){
+    if(!queue) return;
+
     const index = queue.indexOf(uuid);
+
     if(index !== -1){
         queue.splice(0, index + 1);
-    }     
+    }
+    
+    return;
 }
 
 function getVoiceServers(){

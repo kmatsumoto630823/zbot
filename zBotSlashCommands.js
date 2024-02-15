@@ -1,11 +1,9 @@
 require("dotenv").config();
-
 const envVoiceServers = process.env.voiceServers;
 const envSpeakerSpeedScaleUpperLimit = Number(process.env.speakerSpeedScaleUpperLimit);
 const envSpeakerSpeedScaleLowerLimit = Number(process.env.speakerSpeedScaleLowerLimit);
 const envSpeakerPitchScaleUpperLimit = Number(process.env.speakerPitchScaleUpperLimit);
 const envSpeakerPitchScaleLowerLimit = Number(process.env.speakerPitchScaleLowerLimit);
-
 
 const zBotSlashCommands = [
     {
@@ -30,9 +28,9 @@ const zBotSlashCommands = [
 
         "excute": async function(interaction, zBotData){
             const {
-                zBotServerConfigs, 
-                zBotServerPlayers,
-                zBotServerPlayerQueues,
+                zBotGuildConfigs, 
+                zBotGuildPlayers,
+                zBotGuildPlayerQueues,
             } = zBotData;
 
             const guildId = interaction.guildId;
@@ -41,6 +39,7 @@ const zBotSlashCommands = [
             const adapterCreator = interaction.guild.voiceAdapterCreator;
     
             const { joinVoiceChannel } = require("@discordjs/voice");
+
             const connection = joinVoiceChannel({
                 "channelId": voiceCannelId,
                 "guildId": guildId,
@@ -49,12 +48,13 @@ const zBotSlashCommands = [
     
             if(!connection){
                 interaction.reply("接続に失敗しました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
     
             const { createAudioPlayer, NoSubscriberBehavior } = require("@discordjs/voice");
+
             const player = createAudioPlayer({
                 behaviors: {
                   noSubscriber: NoSubscriberBehavior.Pause,
@@ -65,33 +65,32 @@ const zBotSlashCommands = [
                 connection.destroy();
 
                 interaction.reply("プレイヤーの生成に失敗しました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
     
-
             const subscribe = connection.subscribe(player);
 
             if(!subscribe){
                 connection.destroy();
                 
                 interaction.reply("音声チャンネルへのプレイヤーの接続に失敗しました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }            
     
             zBotData.restoreConfig(guildId);
-            zBotServerConfigs[guildId].textChannelId = textCannelId;
-            zBotServerConfigs[guildId].voiceChannelId = voiceCannelId;
+            zBotGuildConfigs[guildId].textChannelId = textCannelId;
+            zBotGuildConfigs[guildId].voiceChannelId = voiceCannelId;
 
             zBotData.restoreDictionary(guildId);
-            zBotServerPlayers[guildId] = player;
-            zBotServerPlayerQueues[guildId] = [];
+            zBotGuildPlayers[guildId] = player;
+            zBotGuildPlayerQueues[guildId] = [];
 
             interaction.reply("こんにちは！zBotを接続しました")
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
 
             return;            
         }
@@ -105,7 +104,7 @@ const zBotSlashCommands = [
             let message = "";
 
             const speakers = await getSpeakersWithStyles()
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
 
             if(!speakers){
                 interaction("話者IDの一覧を作成に失敗しました");
@@ -122,7 +121,7 @@ const zBotSlashCommands = [
             const attachment = new AttachmentBuilder(buffer, { "name": "speakers.txt" });
 
             interaction.reply({ "content": "話者IDの一覧を作成しました", "files": [attachment] })
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
 
             return;
         }
@@ -169,7 +168,7 @@ const zBotSlashCommands = [
         ],
         
         "excute": async function(interaction, zBotData){
-            const { zBotServerConfigs } = zBotData;
+            const { zBotGuildConfigs } = zBotData;
 
             const guildId = interaction.guildId;
         
@@ -178,7 +177,7 @@ const zBotSlashCommands = [
         
             if(!connection){
                 interaction.reply("まだ部屋にお呼ばれされてません・・・")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
@@ -192,11 +191,11 @@ const zBotSlashCommands = [
             const memberName = interaction.member.displayName + "さん";
         
             const speakers = await getSpeakersWithStyles()
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
         
             if(!speakers){
                 interaction.reply("話者IDの一覧を作成に失敗しました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             };
@@ -205,12 +204,12 @@ const zBotSlashCommands = [
         
             if(!speaker){
                 interaction.reply("エンジン「" + speakerEngine + "」に指定のIDに該当する話者が存在しませんでした")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;   
             }
         
-            zBotServerConfigs[guildId].memberSpeakerConfigs[memberId] = {
+            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = {
                 "engine": speakerEngine,
                 "id": speakerId,
                 "speedScale": (!speakerSpeedScale ? 1.0 : speakerSpeedScale),
@@ -220,41 +219,42 @@ const zBotSlashCommands = [
             const message = 
                 memberName + "の話者を「" +
                     speaker.engine + "：" + speaker.speakerName + "（" + speaker.styleName  + "）" +
-                    "＃スピード：" + zenkaku2Hankaku(String(zBotServerConfigs[guildId].memberSpeakerConfigs[memberId].speedScale)) + " " + 
-                    "＃ピッチ：" + zenkaku2Hankaku(String(zBotServerConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale)) +
+                    "＃スピード：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale)) + " " + 
+                    "＃ピッチ：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale)) +
                 "」に変更しました"
             ;    
         
             interaction.reply(message)
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
 
             return;
         },
 
         "autocomplete": async function(interaction, zBotData){
             const focusedOption = interaction.options.getFocused(true);
+
             if(focusedOption.name !== "id"){
                 interaction.respond([])
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
         
             const engine = interaction.options.getString("engine");
+
             if(!engine){
                 interaction.respond([])
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
         
             const speakers = await getSpeakersWithStyles()
-            .catch((error) => { console.log(error); });
-        
+            .catch((error) => { console.error(error); });
         
             if(!speakers){
                 interaction.respond([])
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;               
             }
@@ -271,9 +271,9 @@ const zBotSlashCommands = [
                 choices.length = 25;         
             }
 
-
             interaction.respond(choices)
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
+
             return;        
         }
 
@@ -284,7 +284,7 @@ const zBotSlashCommands = [
         "description": "話者をランダムに変更します",
         
         "excute": async function(interaction, zBotData){
-            const { zBotServerConfigs } = zBotData;
+            const { zBotGuildConfigs } = zBotData;
 
             const guildId = interaction.guildId;
         
@@ -293,7 +293,7 @@ const zBotSlashCommands = [
         
             if(!connection){
                 interaction.reply("まだ部屋にお呼ばれされてません・・・")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
@@ -302,11 +302,11 @@ const zBotSlashCommands = [
             const memberName = interaction.member.displayName + "さん" ;
         
             const speakers = await getSpeakersWithStyles()
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
         
             if(!speakers){
                 interaction.reply("話者IDの一覧を作成に失敗しました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             };
@@ -315,7 +315,7 @@ const zBotSlashCommands = [
         
             const speaker = speakers[randomNumber];
         
-            zBotServerConfigs[guildId].memberSpeakerConfigs[memberId] = {
+            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = {
                 "engine": speaker.engine,
                 "id": speaker.id,
                 "speedScale": 1.0,
@@ -325,13 +325,13 @@ const zBotSlashCommands = [
             const message = 
                 memberName + "の話者を「" +
                     speaker.engine + "：" + speaker.speakerName + "（" + speaker.styleName  + "）" +
-                    "＃スピード：" + zenkaku2Hankaku(String(zBotServerConfigs[guildId].memberSpeakerConfigs[memberId].speedScale)) + " " + 
-                    "＃ピッチ：" + zenkaku2Hankaku(String(zBotServerConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale)) +
+                    "＃スピード：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale)) + " " + 
+                    "＃ピッチ：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale)) +
                 "」に変更しました"
             ;    
         
             interaction.reply(message)
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
 
             return;
         }
@@ -357,7 +357,7 @@ const zBotSlashCommands = [
         ],
 
         "excute": async function(interaction, zBotData){
-            const { zBotServerDictionaries } = zBotData;
+            const { zBotGuildDictionaries } = zBotData;
 
             const guildId = interaction.guildId;
 
@@ -366,7 +366,7 @@ const zBotSlashCommands = [
     
             if(!connection){
                 interaction.reply("まだ部屋にお呼ばれされてません・・・")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
@@ -377,6 +377,7 @@ const zBotSlashCommands = [
             let key = orgKey.trim();
             
             const matches = /^<:[a-zA-Z0-9_]+:([0-9]+)>$/.exec(key);
+
             if(matches){
                 key = "<:CustomEmoji:" + matches[1] + ">";
             }
@@ -384,27 +385,30 @@ const zBotSlashCommands = [
             const value = (orgValue === null) ? null : orgValue.trim();
     
             if(value === "delete"){
-                if(zBotServerDictionaries[guildId][key] === void 0){
+                if(zBotGuildDictionaries[guildId][key] === void 0){
                     interaction.reply("「" + orgKey + "は辞書登録されていません")
-                    .catch((error) => { console.log(error); });
+                    .catch((error) => { console.error(error); });
 
                     return;
                 }
-                delete zBotServerDictionaries[guildId][key];
+
+                delete zBotGuildDictionaries[guildId][key];
     
                 interaction.reply("「" + orgKey + "」の辞書登録を解除しました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 zBotData.saveDictionary(guildId);
+
                 return;
             }
     
-            zBotServerDictionaries[guildId][key] = value;
+            zBotGuildDictionaries[guildId][key] = value;
 
             interaction.reply("「" + orgKey + "」を「" + orgValue + "」に辞書登録しました")
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
     
             zBotData.saveDictionary(guildId);
+            
             return;
         }
     },
@@ -415,7 +419,7 @@ const zBotSlashCommands = [
 
         
         "excute": async function(interaction, zBotData){
-            const { zBotServerConfigs } = zBotData;
+            const { zBotGuildConfigs } = zBotData;
 
             const guildId = interaction.guildId;
         
@@ -424,23 +428,23 @@ const zBotSlashCommands = [
         
             if(!connection){
                 interaction.reply("まだ部屋にお呼ばれされてません・・・")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
 
-            if(zBotServerConfigs[guildId].isReactionSpeach === void 0){
-                zBotServerConfigs[guildId].isReactionSpeach = true;
+            if(zBotGuildConfigs[guildId].isReactionSpeach === void 0){
+                zBotGuildConfigs[guildId].isReactionSpeach = true;
             }
             
-            zBotServerConfigs[guildId].isReactionSpeach = !zBotServerConfigs[guildId].isReactionSpeach
+            zBotGuildConfigs[guildId].isReactionSpeach = !zBotGuildConfigs[guildId].isReactionSpeach
             
-            if(zBotServerConfigs[guildId].isReactionSpeach){
+            if(zBotGuildConfigs[guildId].isReactionSpeach){
                 interaction.reply("リアクションスタンプの読み上げを有効にしました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
             }else{
                 interaction.reply("リアクションスタンプの読み上げを無効にしました")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
             }
         
             return;
@@ -453,8 +457,8 @@ const zBotSlashCommands = [
 
         "excute": async function(interaction, zBotData){
             const {
-                zBotServerConfigs, 
-                zBotServerDictionaries,
+                zBotGuildConfigs, 
+                zBotGuildDictionaries,
             } = zBotData;
 
             const guildId = interaction.guildId;
@@ -464,7 +468,7 @@ const zBotSlashCommands = [
     
             if(!connection){
                 interaction.reply("まだ部屋にお呼ばれされてません・・・")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
@@ -472,15 +476,15 @@ const zBotSlashCommands = [
             const { AttachmentBuilder } = require("discord.js");
 
             const server = {
-                "config": zBotServerConfigs[guildId],
-                "dict": zBotServerDictionaries[guildId]
+                "config": zBotGuildConfigs[guildId],
+                "dict": zBotGuildDictionaries[guildId]
             };
 
             const buffer = Buffer.from(JSON.stringify(server, null, 2));
             const attachment = new AttachmentBuilder(buffer, {"name": "zbot.json"});
 
             interaction.reply({ "content": "zBotの設定をエクスポートしました", "files": [attachment] })
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
 
             return;
         }
@@ -498,7 +502,7 @@ const zBotSlashCommands = [
     
             if(!connection){
                 interaction.reply("まだ部屋にお呼ばれされてません・・・")
-                .catch((error) => { console.log(error); });
+                .catch((error) => { console.error(error); });
 
                 return;
             }
@@ -506,7 +510,7 @@ const zBotSlashCommands = [
             connection.destroy();
 
             interaction.reply("さようなら！zBotを切断します")
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
     
             zBotData.saveConfig(guildId);
             zBotData.saveDictionary(guildId);
@@ -529,12 +533,13 @@ const zBotSlashCommands = [
             }
 
             interaction.reply(message)
-            .catch((error) => { console.log(error); });
+            .catch((error) => { console.error(error); });
 
             return;
         }
     }
 ];
+
 
 async function getSpeakersWithStyles(){
 
@@ -558,7 +563,7 @@ async function getSpeakersWithStyles(){
         const response = await rpc.get("speakers", {
             headers: { "accept" : "application/json" },
         })
-        .catch((error) => { console.log(error); });
+        .catch((error) => { console.error(error); });
 
         if(!response) return;
         if(response.status !== 200) return;
@@ -581,6 +586,7 @@ async function getSpeakersWithStyles(){
     
     return this.speakersWithStyles;
 }
+
 
 function getVoiceServerEngineCoices(){
     const choices = [];

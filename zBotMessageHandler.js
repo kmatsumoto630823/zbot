@@ -1,11 +1,13 @@
-require("dotenv").config();
+const { getVoiceConnection } = require("@discordjs/voice");
+const zBotTextPreprocessor = require("./zBotTextPreprocessor");
+const zBotTextToSpeech = require("./zBotTextToSpeech");
 
 async function zBotMessageHandler(message, zBotData){
     const {
-        zBotServerConfigs, 
-        zBotServerDictionaries,
-        zBotServerPlayers,
-        zBotServerPlayerQueues
+        zBotGuildConfigs, 
+        zBotGuildDictionaries,
+        zBotGuildPlayers,
+        zBotGuildPlayerQueues
     } = zBotData;
 
     if(message.author.bot) return;
@@ -14,35 +16,32 @@ async function zBotMessageHandler(message, zBotData){
     const memberId = message.member.id;
     const textChannelId = message.channel.id;
 
-    const { getVoiceConnection } = require("@discordjs/voice");
+    //const { getVoiceConnection } = require("@discordjs/voice");
     const connection = getVoiceConnection(guildId);
 
     if(!connection) return;
 
-    if(textChannelId !== zBotServerConfigs[guildId].textChannelId) return;
+    if(textChannelId !== zBotGuildConfigs[guildId].textChannelId) return;
 
-    const conf = zBotServerConfigs[guildId].memberSpeakerConfigs;
-    if(conf[memberId] === void 0){
-        conf[memberId] = zBotData.makeDefaultSpeakerConfig();        
-    }
+    zBotData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
-    if(conf[memberId].id < 0) return;
+    if(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].id < 0) return;
 
-    //const text = message.cleanContent;
     const text = message.content;
-    console.log(text);
 
-    const zBotTextPreprocessor = require("./zBotTextPreprocessor");
-    const textLines = zBotTextPreprocessor(text, zBotServerDictionaries[guildId]);
+    //const zBotTextPreprocessor = require("./zBotTextPreprocessor");
+    const splitedText = zBotTextPreprocessor(text, zBotGuildDictionaries[guildId]);
 
-    const zBotTextToSpeech = require("./zBotTextToSpeech");
+    //const zBotTextToSpeech = require("./zBotTextToSpeech");
     zBotTextToSpeech(
-        textLines,
-        zBotServerConfigs[guildId].memberSpeakerConfigs[memberId],
-        zBotServerPlayers[guildId],
-        zBotServerPlayerQueues[guildId]
+        splitedText,
+        zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId],
+        zBotGuildPlayers[guildId],
+        zBotGuildPlayerQueues[guildId]
     )
-    .catch((error) => { console.log(error); });
+    .catch((error) => { console.error(error); });
+
+    return;
 };
 
 module.exports = zBotMessageHandler;

@@ -1,55 +1,56 @@
-require("dotenv").config();
+const { getVoiceConnection } = require("@discordjs/voice");
+const zBotTextPreprocessor = require("./zBotTextPreprocessor");
+const zBotTextToSpeech = require("./zBotTextToSpeech");
 
 async function zBotReactionHandler(reaction, user, zBotData){
     const {
-        zBotServerConfigs, 
-        zBotServerDictionaries,
-        zBotServerPlayers,
-        zBotServerPlayerQueues
+        zBotGuildConfigs, 
+        zBotGuildDictionaries,
+        zBotGuildPlayers,
+        zBotGuildPlayerQueues
     } = zBotData;
 
     if(user.bot) return;
+    
     if(reaction.count !== 1) return;
 
     const guildId = reaction.message.guildId;
     const memberId = user.id;
     const textChannelId = reaction.message.channel.id;
 
-    const { getVoiceConnection } = require("@discordjs/voice");
+    //const { getVoiceConnection } = require("@discordjs/voice");
     const connection = getVoiceConnection(guildId);
 
     if(!connection) return;
 
-    if(textChannelId !== zBotServerConfigs[guildId].textChannelId) return;
+    if(textChannelId !== zBotGuildConfigs[guildId].textChannelId) return;
 
-    if(zBotServerConfigs[guildId].isReactionSpeach === void 0){
-        zBotServerConfigs[guildId].isReactionSpeach = true;
-    }
+    //if(zBotGuildConfigs[guildId].isReactionSpeach === void 0){
+    //    zBotGuildConfigs[guildId].isReactionSpeach = true;
+    //}
 
-    if(!zBotServerConfigs[guildId].isReactionSpeach) return;
+    if(!zBotGuildConfigs[guildId].isReactionSpeach) return;
 
-    const conf = zBotServerConfigs[guildId].memberSpeakerConfigs;
+    zBotData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
-    if(conf[memberId] === void 0){
-        conf[memberId] = zBotData.makeDefaultSpeakerConfig();        
-    }
-
-    if(conf[memberId].id < 0) return;
+    if(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].id < 0) return;
 
     const text =
         (reaction.emoji.id === null) ? reaction.emoji.name : "<:CustomEmoji:" + reaction.emoji.id + ">";
 
-    const zBotTextPreprocessor = require("./zBotTextPreprocessor");
-    const textLines = zBotTextPreprocessor(text, zBotServerDictionaries[guildId]);
+    //const zBotTextPreprocessor = require("./zBotTextPreprocessor");
+    const splitedText = zBotTextPreprocessor(text, zBotGuildDictionaries[guildId]);
 
-    const zBotTextToSpeech = require("./zBotTextToSpeech");
+    //const zBotTextToSpeech = require("./zBotTextToSpeech");
     zBotTextToSpeech(
-        textLines,
-        zBotServerConfigs[guildId].memberSpeakerConfigs[memberId],
-        zBotServerPlayers[guildId],
-        zBotServerPlayerQueues[guildId]
+        splitedText,
+        zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId],
+        zBotGuildPlayers[guildId],
+        zBotGuildPlayerQueues[guildId]
     )
-    .catch((error) => { console.log(error); });
+    .catch((error) => { console.error(error); });
+
+    return;
 };
 
 module.exports = zBotReactionHandler;

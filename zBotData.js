@@ -1,23 +1,26 @@
 require("dotenv").config();
-
 const envDefaultSpeakerEngine = process.env.defaultSpeakerEngine;
 const envDefaultSpeakerId = parseInt(process.env.defaultSpeakerId);
-const envServerConfigsDir = process.env.serverConfigsDir;
-const envServerDictionaryDir = process.env.serverDictionaryDir;
+const envDefaultSpeakerSpeedScale = Number(process.env.defaultSpeakerSpeedScale);
+const envDefaultSpeakerPitchScale = Number(process.env.defaultSpeakerPitchScale);
 
+const envGuildConfigsDir = process.env.guildConfigsDir;
+const envGuildDictionariesDir = process.env.guildDictionariesDir;
+
+const fs = require("fs");
 
 const zBotData = {
-    "zBotServerConfigs": {},
-    "zBotServerDictionaries": {},
-    "zBotServerPlayers": {},
-    "zBotServerPlayerQueues": {},
+    "zBotGuildConfigs": {},
+    "zBotGuildDictionaries": {},
+    "zBotGuildPlayers": {},
+    "zBotGuildPlayerQueues": {},
 
     "saveConfig": function(guildId){
-        const fs = require("fs");
-        const path = envServerConfigsDir + "/" + String(guildId) + ".json";
+        const path = envGuildConfigsDir + "/" + String(guildId) + ".json";
     
         try{
-            fs.writeFileSync(path, JSON.stringify(this.zBotServerConfigs[guildId]));
+            //const fs = require("fs");
+            fs.writeFileSync(path, JSON.stringify(this.zBotGuildConfigs[guildId]));
         }catch{
             return false;
         }
@@ -26,32 +29,32 @@ const zBotData = {
     },
 
     "restoreConfig": function(guildId){
-        const defaultServerConfig = {
+        const defaultGuildConfig = {
             "textChannelId": "",
             "voiceChannelId": "",
             "isReactionSpeach": true,
             "memberSpeakerConfigs": {},
         };
     
-        const fs = require("fs");
-        const path = envServerConfigsDir + "/" + String(guildId) + ".json";
+        const path = envGuildConfigsDir + "/" + String(guildId) + ".json";
     
         try{
+            //const fs = require("fs");
             const text = fs.readFileSync(path);
-            this.zBotServerConfigs[guildId] = JSON.parse(text);
+            this.zBotGuildConfigs[guildId] = JSON.parse(text);
         }catch{
-            this.zBotServerConfigs[guildId] = defaultServerConfig;
+            this.zBotGuildConfigs[guildId] = defaultGuildConfig;
         }
 
         return true;
     },
 
     "saveDictionary": function(guildId){
-        const fs = require("fs");
-        const path = envServerDictionaryDir + "/" + String(guildId) + ".json";
+        const path = envGuildDictionariesDir + "/" + String(guildId) + ".json";
 
         try{
-            fs.writeFileSync(path, JSON.stringify(this.zBotServerDictionaries[guildId]));
+            //const fs = require("fs");
+            fs.writeFileSync(path, JSON.stringify(this.zBotGuildDictionaries[guildId]));
         }catch{
             return false;
         }
@@ -60,37 +63,45 @@ const zBotData = {
     },
 
     "restoreDictionary": function(guildId){
-        const fs = require("fs");
-        const path = envServerDictionaryDir + "/" + String(guildId) + ".json";
+        const path = envGuildDictionariesDir + "/" + String(guildId) + ".json";
     
         try{
+            //const fs = require("fs");
             const text = fs.readFileSync(path);
-            this.zBotServerDictionaries[guildId] = JSON.parse(text);
+            this.zBotGuildDictionaries[guildId] = JSON.parse(text);
         }catch{
-            this.zBotServerDictionaries[guildId] = {};
+            this.zBotGuildDictionaries[guildId] = {};
         }
         
         return true;
     },
 
     "delete": function(guildId){
-        this.zBotServerPlayers[guildId].stop();
+        this.zBotGuildPlayers[guildId].stop();
             
-        delete this.zBotServerConfigs[guildId];
-        delete this.zBotServerDictionaries[guildId];
-        delete this.zBotServerPlayers[guildId];
-        delete this.zBotServerPlayerQueues[guildId];        
+        delete this.zBotGuildConfigs[guildId];
+        delete this.zBotGuildDictionaries[guildId];
+        delete this.zBotGuildPlayers[guildId];
+        delete this.zBotGuildPlayerQueues[guildId];        
     },
 
-    "makeDefaultSpeakerConfig": function(){
+    "initMemberSpeakerConfigIfUndefined": function(guildId, memberId){
+        const guildConfig = this.zBotGuildConfigs[guildId];
+        
+        if(guildConfig === void 0) return;
+
+        const memberSpeakerConfigs = guildConfig.memberSpeakerConfigs[memberId];
+
+        if(memberSpeakerConfigs !== void 0) return;
+
         const config = {
             "engine": envDefaultSpeakerEngine,
             "id": envDefaultSpeakerId,
-            "speedScale": 1.0,
-            "pitchScale": 0.0
+            "speedScale": envDefaultSpeakerSpeedScale,
+            "pitchScale": envDefaultSpeakerPitchScale
         };
 
-        return config;
+        this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = config;
     }
 };
 

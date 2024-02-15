@@ -1,7 +1,7 @@
-function zBotTextPreprocessor(orgText, dictionary){
-    
-    let text = orgText;
+const twEmojiDict = require("./utils/twEmojiDict");
+const emojiRegex = require("./utils/emojiRegex");
 
+function zBotTextPreprocessor(text, dictionary){
     text = text
         .replace(/(https?|ftp)(:\/\/[\w\/:%#\$&\?\(\)~\.=\+\-]+)/g, "")
         .replace(/<(@!?|#|@&)[0-9]+>/g, "")
@@ -13,8 +13,10 @@ function zBotTextPreprocessor(orgText, dictionary){
         let after =  dictionary[key];
 
         const keyMatches = /^<:[a-zA-Z0-9_]+:([0-9]+)>$/.exec(key);
+
         if(keyMatches){
             const textMatches = RegExp("<:[a-zA-Z0-9_]+:" + keyMatches[1] + ">").exec(text);
+
             if(textMatches){
                 before = textMatches[0];
             }else{
@@ -28,8 +30,7 @@ function zBotTextPreprocessor(orgText, dictionary){
         ;
     }
 
-    const twEmojiDict = require("./utils/twEmojiDict");
-
+    //const twEmojiDict = require("./utils/twEmojiDict");
     for(const key in twEmojiDict){
         let before = key;
         let after =  twEmojiDict[key];
@@ -40,8 +41,7 @@ function zBotTextPreprocessor(orgText, dictionary){
         ; 
     }
 
-    const emojiRegex = require("./utils/emojiRegex");
-
+    //const emojiRegex = require("./utils/emojiRegex");
     text = text
         .replace(/<:[a-zA-Z0-9_]+:[0-9]+>/g, "")
         .replace(emojiRegex(), "")
@@ -54,14 +54,14 @@ function zBotTextPreprocessor(orgText, dictionary){
         .replace(/\0{2,}/g, "\0")
     ;
 
-    const retTextLines = [];
+    const splitedText = [];
+    
     for(const splited of text.split("\0")){
         if(splited === "") continue;
-        retTextLines.push(splited);
+        splitedText.push(splited);
     }
 
-    return retTextLines;
-
+    return splitedText;
 };
 
 module.exports = zBotTextPreprocessor;
