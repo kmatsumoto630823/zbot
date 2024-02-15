@@ -107,7 +107,7 @@ serverDictionaryDir = "./guild_dictionaries"
 
 準備ができたら実行
 ```
-$ node zBot.js
+$ node index.js
 ```
 
 # Author
