@@ -25,10 +25,6 @@ async function zBotReactionHandler(reaction, user, zBotData){
 
     if(textChannelId !== zBotGuildConfigs[guildId].textChannelId) return;
 
-    //if(zBotGuildConfigs[guildId].isReactionSpeach === void 0){
-    //    zBotGuildConfigs[guildId].isReactionSpeach = true;
-    //}
-
     if(!zBotGuildConfigs[guildId].isReactionSpeach) return;
 
     zBotData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
@@ -42,13 +38,12 @@ async function zBotReactionHandler(reaction, user, zBotData){
     const splitedText = zBotTextPreprocessor(text, zBotGuildDictionaries[guildId]);
 
     //const zBotTextToSpeech = require("./zBotTextToSpeech");
-    zBotTextToSpeech(
+    await zBotTextToSpeech(
         splitedText,
         zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId],
         zBotGuildPlayers[guildId],
         zBotGuildPlayerQueues[guildId]
-    )
-    .catch((error) => { console.error(error); });
+    );
 
     return;
 };

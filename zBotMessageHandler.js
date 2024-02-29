@@ -33,13 +33,12 @@ async function zBotMessageHandler(message, zBotData){
     const splitedText = zBotTextPreprocessor(text, zBotGuildDictionaries[guildId]);
 
     //const zBotTextToSpeech = require("./zBotTextToSpeech");
-    zBotTextToSpeech(
+    await zBotTextToSpeech(
         splitedText,
         zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId],
         zBotGuildPlayers[guildId],
         zBotGuildPlayerQueues[guildId]
-    )
-    .catch((error) => { console.error(error); });
+    );
 
     return;
 };

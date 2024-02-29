@@ -19,7 +19,8 @@ function zBotTextPreprocessor(text, dictionary){
 
             if(textMatches){
                 before = textMatches[0];
-            }else{
+            }
+            else{
                 continue;
             }
         }

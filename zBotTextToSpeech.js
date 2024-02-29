@@ -33,16 +33,13 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue)
     for(const text of splitedText){
         if(text.length > envVoiceServerTextLengthLimit) continue;
 
-        const resource = await makeSpeechResource(text, speaker)
-        .catch((error) => { console.error(error); });
-
+        const resource = await makeSpeechResource(text, speaker);
         resources.push(resource);
     }
 
     for(const resource of resources){
         //const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
-        await entersState(player, AudioPlayerStatus.Idle, 60 * 1000)
-        .catch((error) => { console.error(error); });
+        await entersState(player, AudioPlayerStatus.Idle, 60 * 1000);
 
         player.play(resource);
     }
@@ -64,8 +61,7 @@ async function makeSpeechResource(text, speaker){
 
     const response_audio_query = await rpc.post("audio_query?text=" + encodeURIComponent(text) + "&speaker=" + speaker.id, {
         headers:{ "accept": "application/json" },
-    })
-    .catch((error) => { console.error(error); });
+    });
 
     if(!response_audio_query) return;
     if(response_audio_query.status !== 200) return;
@@ -82,8 +78,7 @@ async function makeSpeechResource(text, speaker){
             "accept": "audio/wav",
             "Content-Type": "application/json"
         }
-    })
-    .catch((error) => { console.error(error); });
+    });
 
     if(!response_synthesis) return;
     if(response_synthesis.status !== 200) return;
