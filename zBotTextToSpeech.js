@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const envVoiceServers = process.env.voiceServers;
 const envVoiceServerTextLengthLimit = parseInt(process.env.voiceServerTextLengthLimit);
 const envSamplingRate = parseInt(process.env.samplingRate);
@@ -70,6 +71,7 @@ async function makeSpeechResource(text, speaker){
 
     audioQuery.speedScale = speaker.speedScale;
     audioQuery.pitchScale = speaker.pitchScale;
+    audioQuery.intonationScale = speaker.intonationScale;
     audioQuery.outputSamplingRate = envSamplingRate;
 
     const response_synthesis = await rpc.post("synthesis?speaker=" + speaker.id, JSON.stringify(audioQuery), {

@@ -1,8 +1,10 @@
 require("dotenv").config();
+
 const envDefaultSpeakerEngine = process.env.defaultSpeakerEngine;
 const envDefaultSpeakerId = parseInt(process.env.defaultSpeakerId);
 const envDefaultSpeakerSpeedScale = Number(process.env.defaultSpeakerSpeedScale);
 const envDefaultSpeakerPitchScale = Number(process.env.defaultSpeakerPitchScale);
+const envDefaultSpeakerIntonationScale = Number(process.env.defaultSpeakerIntonationScale);
 
 const envGuildConfigsDir = process.env.guildConfigsDir;
 const envGuildDictionariesDir = process.env.guildDictionariesDir;
@@ -98,7 +100,24 @@ const zBotData = {
             "engine": envDefaultSpeakerEngine,
             "id": envDefaultSpeakerId,
             "speedScale": envDefaultSpeakerSpeedScale,
-            "pitchScale": envDefaultSpeakerPitchScale
+            "pitchScale": envDefaultSpeakerPitchScale,
+            "intonationScale": envDefaultSpeakerIntonationScale,
+        };
+
+        this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = config;
+    },
+
+    "setMemberSpeakerConfig": function(guildId, memberId, engine, id, speedScale, pitchScale, intonationScale){
+        const guildConfig = this.zBotGuildConfigs[guildId];
+        
+        if(guildConfig === void 0) return;
+        
+        const config = {
+            "engine": !engine ? envDefaultSpeakerEngine : engine,
+            "id": !id ? envDefaultSpeakerId : id,
+            "speedScale": !speedScale ? envDefaultSpeakerSpeedScale : speedScale,
+            "pitchScale": !pitchScale ? envDefaultSpeakerPitchScale : pitchScale,
+            "intonationScale": !intonationScale ? envDefaultSpeakerIntonationScale : intonationScale,
         };
 
         this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = config;

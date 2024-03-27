@@ -1,9 +1,14 @@
 require("dotenv").config();
+
 const envVoiceServers = process.env.voiceServers;
+
 const envSpeakerSpeedScaleUpperLimit = Number(process.env.speakerSpeedScaleUpperLimit);
 const envSpeakerSpeedScaleLowerLimit = Number(process.env.speakerSpeedScaleLowerLimit);
 const envSpeakerPitchScaleUpperLimit = Number(process.env.speakerPitchScaleUpperLimit);
 const envSpeakerPitchScaleLowerLimit = Number(process.env.speakerPitchScaleLowerLimit);
+const envSpeakerIntonationScaleUpperLimit = Number(process.env.speakerIntonationScaleUpperLimit);
+const envSpeakerIntonationScaleLowerLimit = Number(process.env.speakerIntonationScaleLowerLimit);
+
 
 const zBotSlashCommands = [
     {
@@ -14,14 +19,15 @@ const zBotSlashCommands = [
                 "type": 7,
                 "channel_types": [0],
                 "name": "text",
-                "description": "読み上げ「元」のテキストチャンネルを選択してください",
+                "description": "読み上げ「元」の「テキスト」チャンネルを選択してください",
                 "required": true
             },
+            
             {
                 "type": 7,
                 "channel_types": [2],
                 "name": "voice",
-                "description": "読み上げ「先」のボイスチャンネルを選択してください",
+                "description": "読み上げ「先」の「ボイス」チャンネルを選択してください",
                 "required": true
             }
         ],
@@ -43,7 +49,7 @@ const zBotSlashCommands = [
             const connection = joinVoiceChannel({
                 "channelId": voiceCannelId,
                 "guildId": guildId,
-                "adapterCreator": adapterCreator,
+                "adapterCreator": adapterCreator
             });
     
             if(!connection){
@@ -103,7 +109,7 @@ const zBotSlashCommands = [
             };
 
             for(const speaker of speakers){
-                message += speaker.engine + "：" + speaker.speakerName + "（" + speaker.styleName  + "）" + "：" + String(speaker.id) + "\r\n";
+                message += speaker.fqn + "\r\n";
             }
  
             const { AttachmentBuilder } = require("discord.js");
@@ -122,16 +128,8 @@ const zBotSlashCommands = [
         "options": [
             {
                 "type": 3,
-                "name": "engine",
-                "description": "音声合成エンジンを選択してください※エンジンにより選択できる話者が異なります",
-                "required": true,
-                "choices": getVoiceServerEngineCoices()
-            },
-            
-            {
-                "type": 4,
-                "name": "id",
-                "description": "話者IDを直接入力するか、候補から選択してください※最大表示数が25なのでキーワードで絞り込んでください",
+                "name": "speaker",
+                "description": "話者を「エンジン名(省略可)/話者名(省略可)/ID」の形式で指定、あるいは候補から選択してください※候補の表示数には上限があるのでキーワードで絞り込んでください",
                 "required": true,
                 "autocomplete": true
             },
@@ -139,7 +137,7 @@ const zBotSlashCommands = [
             {
                 "type": 10,
                 "name": "speed",
-                "description": "話者のスピード倍率を入力してください※変化させない場合は1を指定",
+                "description": "話者の話速倍率を入力してください※デフォルトは1",
                 "max_value": envSpeakerSpeedScaleUpperLimit,
                 "min_value": envSpeakerSpeedScaleLowerLimit,
                 "required": false
@@ -148,9 +146,18 @@ const zBotSlashCommands = [
             {
                 "type": 10,
                 "name": "pitch",
-                "description": "話者のピッチ倍率を入力してください※変化させない場合は0を指定",
+                "description": "話者の音高倍率を入力してください※デフォルトは0",
                 "max_value": envSpeakerPitchScaleUpperLimit,
                 "min_value": envSpeakerPitchScaleLowerLimit,
+                "required": false
+            },
+
+            {
+                "type": 10,
+                "name": "intonation",
+                "description": "話者の抑揚倍率を入力してください※デフォルトは1",
+                "max_value": envSpeakerIntonationScaleUpperLimit,
+                "min_value": envSpeakerIntonationScaleLowerLimit,
                 "required": false
             }
 
@@ -168,43 +175,53 @@ const zBotSlashCommands = [
                 await interaction.reply("まだ部屋にお呼ばれされてません・・・");
                 return;
             }
+
+            const [speakerEngine, speakerName, speakerId] = 
+                interaction.options.getString("speaker").trim().split("/");
         
-            const speakerEngine = interaction.options.getString("engine");
-            const speakerId = interaction.options.getInteger("id");
+            const speakers = await getSpeakersWithStyles();
+
+            const speaker = speakers.find(
+                (x) => {
+                    if(speakerEngine !== x.engine && speakerEngine) return false;
+                    if(speakerName !== `${x.speakerName}(${x.styleName})` && speakerName) /*return false*/;
+                    if(parseInt(speakerId) !== x.id) return false;
+                    
+                    return true;
+                }
+            );
+
+            if(!speaker){
+                await interaction.reply("話者の指定が不正です");
+                return;                
+            }
+
             const speakerSpeedScale = interaction.options.getNumber("speed");
             const speakerPitchScale = interaction.options.getNumber("pitch");
+            const speakerIntonationScale = interaction.options.getNumber("intonation");
 
             const memberId = interaction.member.id;
             const memberName = interaction.member.displayName + "さん";
-        
-            const speakers = await getSpeakersWithStyles();
-        
-            if(!speakers){
-                await interaction.reply("話者IDの一覧を作成に失敗しました");
-                return;
-            };
-        
-            const speaker = speakers.find( (x) => { return x.engine === speakerEngine && x.id === speakerId; });
-        
-            if(!speaker){
-                await interaction.reply("エンジン「" + speakerEngine + "」に指定のIDに該当する話者が存在しませんでした");
-                return;   
-            }
-        
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = {
-                "engine": speakerEngine,
-                "id": speakerId,
-                "speedScale": (!speakerSpeedScale ? 1.0 : speakerSpeedScale),
-                "pitchScale": (!speakerPitchScale ? 0.0 : speakerPitchScale)
-            };
-        
+    
+            zBotData.setMemberSpeakerConfig(
+                guildId,
+                memberId,
+                speaker.engine,
+                speaker.id,
+                speakerSpeedScale,
+                speakerPitchScale,
+                speakerIntonationScale
+            );
+            
+
             const message = 
                 memberName + "の話者を「" +
-                    speaker.engine + "：" + speaker.speakerName + "（" + speaker.styleName  + "）" +
-                    "＃スピード：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale)) + " " + 
-                    "＃ピッチ：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale)) +
+                    speaker.fqn + " " +
+                    "#話速:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale) + " " + 
+                    "#音高:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale) + " " +
+                    "#抑揚:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].intonationScale) +
                 "」に変更しました"
-            ;    
+            ;
         
             await interaction.reply(message);
             return;
@@ -213,14 +230,7 @@ const zBotSlashCommands = [
         "autocomplete": async function(interaction, zBotData){
             const focusedOption = interaction.options.getFocused(true);
 
-            if(focusedOption.name !== "id"){
-                await interaction.respond([]);
-                return;
-            }
-        
-            const engine = interaction.options.getString("engine");
-
-            if(!engine){
+            if(focusedOption.name !== "speaker"){
                 await interaction.respond([]);
                 return;
             }
@@ -233,11 +243,11 @@ const zBotSlashCommands = [
             }
         
             const filtered = speakers.filter(
-                (x) => (x.engine === engine) && x.fqn.includes(!focusedOption.value ? "" : focusedOption.value)
-            ); 
+                (x) => x.fqn.includes(!focusedOption.value ? "" : focusedOption.value)
+            );
 
             const choices = filtered.map(
-                (x) => ({ "name": x.fqn, "value": x.id })
+                (x) => ({ "name": x.fqn, "value": x.fqn })
             );
         
             if(choices.length > 25){
@@ -278,23 +288,19 @@ const zBotSlashCommands = [
             };
 
             const randomNumber = Math.floor(Math.random() * speakers.length);
-        
             const speaker = speakers[randomNumber];
+
+            zBotData.setMemberSpeakerConfig(
+                guildId,
+                memberId,
+                speaker.engine,
+                speaker.id
+                //speedScale:null
+                //pitchScale:null
+                //intonationScale:null
+            );
         
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = {
-                "engine": speaker.engine,
-                "id": speaker.id,
-                "speedScale": 1.0,
-                "pitchScale": 0.0
-            };
-        
-            const message = 
-                memberName + "の話者を「" +
-                    speaker.engine + "：" + speaker.speakerName + "（" + speaker.styleName  + "）" +
-                    "＃スピード：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale)) + " " + 
-                    "＃ピッチ：" + zenkaku2Hankaku(String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale)) +
-                "」に変更しました"
-            ;    
+            const message = memberName + "の話者を「" + speaker.fqn + "」に変更しました";
         
             await interaction.reply(message);
             return;
@@ -517,35 +523,13 @@ async function getSpeakersWithStyles(){
                     "id": style.id,
                     "speakerName": speaker.name,
                     "styleName": style.name,
-                    "fqn": `${engine}:${speaker.name}(${style.name}):${style.id}`
+                    "fqn": `${engine}/${speaker.name}(${style.name})/${style.id}`
                 });
             }
         }
     }
     
     return this.speakersWithStyles;
-}
-
-
-function getVoiceServerEngineCoices(){
-    const choices = [];
-
-    for(const splited of envVoiceServers.split(";")){
-        const url = new URL(splited);
-        const engine = url.searchParams.get("engine");
-
-        if(!engine) return;
-
-        choices.push({ "name": engine, "value": engine });
-    }
-
-    return choices;
-}
-
-function zenkaku2Hankaku(str) {
-    return str.replace(/[A-Za-z0-9]/g, function(s) {
-        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
-    });
 }
 
 module.exports = zBotSlashCommands;
