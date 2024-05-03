@@ -12,7 +12,7 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 /connect  
 　・・・zBotを接続します  
 /list  
-　・・・話者IDの一覧を表示します 
+　・・・話者IDの一覧を表示します  
 /speaker  
 　・・・話者を変更します  
 /random  
