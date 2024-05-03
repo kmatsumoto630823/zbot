@@ -9,24 +9,30 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 ※DiscordのBotアカウントも各自で用意してください  
 
 # Slach Commnad
-/connect  
-　・・・zBotを接続します  
-/list  
-　・・・話者IDの一覧を表示します  
-/speaker  
-　・・・話者を変更します  
-/random  
-　・・・話者をランダムに変更します  
-/dict  
-　・・・単語または絵文字の読みを辞書登録します  
-/reaction  
-　・・・リアクションスタンプ読み上げの有効・無効を切り替えます  
-/export  
-　・・・zBotの設定をエクスポートします  
-/disconnect  
-　・・・zBotを切断します  
-/help  
-　・・・ヘルプを表示します  
+/connect
+　・・・zBotを接続します
+/list
+　・・・話者IDの一覧を表示します
+/speaker
+　・・・話者を変更します
+/speed
+　・・・話者の話速を変更します
+/pitch
+　・・・話者の音高を変更します
+/intonation
+　・・・話者の抑揚を変更します
+/random
+　・・・話者をランダムに変更します
+/dict
+　・・・単語または絵文字の読みを辞書登録します
+/reaction
+　・・・リアクションスタンプ読み上げの有効・無効を切り替えます
+/export
+　・・・zBotの設定をエクスポートします
+/disconnect
+　・・・zBotを切断します
+/help
+　・・・ヘルプを表示します 
 
 # Dependencies(というよりは自分の環境)
 - Redhat Enterprise Linux 9（Minimal + Development Tools）またはWindows 11
