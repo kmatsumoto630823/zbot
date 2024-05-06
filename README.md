@@ -4,18 +4,18 @@
 音声変換にVOICEVOX（とその互換エンジン）を利用したDiscord用読み上げ（TTS）Bot  
 複数のサーバー（ギルド）でも動作するように設計してますが、基本的には小規模運用想定  
 
-# Policy（基本方針）
+# 基本方針
 - シンプルイズベスト（無駄に機能を追加しない・コードを肥大化させない・ファイルを増やさない）
 - ギルドごとの設定値はファイル（json）ベースでストア・リストアで管理（DBを使わない）
 - VOICEVOX側の性能・可用性の向上は別の仕組みでやってね（例えばVOICEVOXサーバーを複数台用意してLBで負荷分散させるとか？）
 
-# Slach Commnad（使い方）
+# 使い方(Slach Commnad)
 /connect  
 　・・・zBotを接続します  
 /list  
 　・・・話者IDの一覧を表示します  
 /speaker  
-　・・・話者を変更します  
+　・・・話者を変更します※話者の候補一覧を表示しますがDiscordの表示上限が25なので、キーワードで適度に削ってから選択してください  
 /random  
 　・・・話者をランダムに変更します  
 /speed  
@@ -25,11 +25,11 @@
 /intonation  
 　・・・話者の抑揚を変更します  
 /dict  
-　・・・単語または絵文字の読みを辞書登録します  
+　・・・単語または絵文字・カスタム絵文字の読みを辞書登録します  
 /reaction  
 　・・・リアクションスタンプ読み上げの有効・無効を切り替えます  
 /export  
-　・・・zBotの設定をエクスポートします  
+　・・・設定をエクスポートします  
 /disconnect  
 　・・・zBotを切断します  
 /help  
@@ -50,18 +50,18 @@
 @discordjs/voiceの依存パッケージは代替できるものがあるので各自の判断で読み替えること  
 https://discordjs.guide/voice/#extra-dependencies
 
-# Install
-前提としてDiscordのBotアカウントの作成及びVOICEVOXサーバーは準備できているものとします。
+# 導入方法
+前提としてDiscordのBotアカウントの作成及びVOICEVOXサーバーは準備できているものとします
+また、Node.js環境は各OSに応じた方法で準備してください
 
-node.js環境を用意  
 Bot用のディレクトリ作成※以降はこのディレクトリで作業  
 gitコマンドでファイル一式を配置  
 必要なパッケージをnpmコマンドで導入  
 ディレクトリ「guild_configs」と「guild_dictionaries」を作成  
 env_sampleを参考にご各自の環境に適した.envを作成  
-node zBot.jsでBotを実行してください  
+node index.jsでBotを実行してください  
 
-## Linux上での実行例
+## Linux上での例
 ```
 $ mkdir your_bot_dir
 $ cd your_bot_dir
