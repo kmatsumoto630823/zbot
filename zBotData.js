@@ -10,6 +10,7 @@ const envGuildConfigsDir = process.env.guildConfigsDir;
 const envGuildDictionariesDir = process.env.guildDictionariesDir;
 
 const fs = require("fs");
+const crypto = require("crypto");
 
 const zBotData = {
     "zBotGuildConfigs": {},
@@ -17,27 +18,80 @@ const zBotData = {
     "zBotGuildPlayers": {},
     "zBotGuildPlayerQueues": {},
 
-    "saveConfig": function(guildId){
-        const path = envGuildConfigsDir + "/" + String(guildId) + ".json";
-    
-        try{
-            //const fs = require("fs");
-            fs.writeFileSync(path, JSON.stringify(this.zBotGuildConfigs[guildId]));
-        }catch{
-            return false;
-        }
-
-        return true;
-    },
-
-    "restoreConfig": function(guildId){
-        const defaultGuildConfig = {
+    "initGuildConfig": function(guildId){
+        const defaultConfig = {
             "textChannelId": "",
             "voiceChannelId": "",
             "isReactionSpeach": true,
             "memberSpeakerConfigs": {},
         };
-    
+
+        this.zBotGuildConfigs[guildId] = defaultConfig;
+
+        return;
+    },
+
+    "initGuildConfigIfUndefined": function(guildId){
+        const guildConfig = this.zBotGuildConfigs[guildId];
+        
+        if(guildConfig !== void 0) return;
+
+        this.initGuildConfig(guildId);
+
+        return;
+    },
+
+    "initMemberSpeakerConfig": function(guildId, memberId){
+        const guildConfig = this.zBotGuildConfigs[guildId];
+        
+        if(guildConfig === void 0) return;
+
+        const defaultConfig = {
+            "engine": envDefaultSpeakerEngine,
+            "id": envDefaultSpeakerId,
+            "speedScale": envDefaultSpeakerSpeedScale,
+            "pitchScale": envDefaultSpeakerPitchScale,
+            "intonationScale": envDefaultSpeakerIntonationScale,
+        };
+
+        this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = defaultConfig;
+        
+        return;
+    },
+
+    "initMemberSpeakerConfigIfUndefined": function(guildId, memberId){
+        const guildConfig = this.zBotGuildConfigs[guildId];
+        
+        if(guildConfig === void 0) return;
+
+        const memberSpeakerConfigs = guildConfig.memberSpeakerConfigs[memberId];
+
+        if(memberSpeakerConfigs !== void 0) return;
+
+        this.initMemberSpeakerConfig(guildId, memberId);
+
+        return;
+    },
+
+    "initGuildDictionary": function(guildId){
+        const defaultDictionary = {};
+
+        this.zBotGuildDictionaries[guildId] = defaultDictionary;
+
+        return;
+    },
+
+    "initGuildDictionaryIfUndefined": function(guildId){
+        const guildDictionary = this.zBotGuildDictionaries[guildId];
+        
+        if(guildDictionary !== void 0) return;
+
+        this.initGuildDictionary(guildId);
+
+        return;
+    },
+
+    "restoreConfig": function(guildId){
         const path = envGuildConfigsDir + "/" + String(guildId) + ".json";
     
         try{
@@ -45,18 +99,36 @@ const zBotData = {
             const text = fs.readFileSync(path);
             this.zBotGuildConfigs[guildId] = JSON.parse(text);
         }catch{
-            this.zBotGuildConfigs[guildId] = defaultGuildConfig;
+            this.initGuildConfigIfUndefined(guildId);
         }
+
+        //const crypto = require("crypto");
+        const uuidPropertyName = crypto.createHash("md5").update(`GUILD-CONFIG-${guildId}`).digest("hex");
+        const uuid = crypto.randomUUID();
+
+        this.zBotGuildConfigs[guildId][uuidPropertyName] ??= uuid;
 
         return true;
     },
 
-    "saveDictionary": function(guildId){
-        const path = envGuildDictionariesDir + "/" + String(guildId) + ".json";
+    "saveConfig": function(guildId){
+        const path = envGuildConfigsDir + "/" + String(guildId) + ".json";
+
+        //const crypto = require("crypto");
+        const uuidPropertyName = crypto.createHash("md5").update(`GUILD-CONFIG-${guildId}`).digest("hex");
 
         try{
+            const text = fs.readFileSync(path);
+            const uuid = this.zBotGuildConfigs[guildId][uuidPropertyName];
+
+            if(text.includes(uuidPropertyName) && !text.includes(uuid)) return false;
+        }catch{
+            //Nothing To Do.
+        }
+    
+        try{
             //const fs = require("fs");
-            fs.writeFileSync(path, JSON.stringify(this.zBotGuildDictionaries[guildId]));
+            fs.writeFileSync(path, JSON.stringify(this.zBotGuildConfigs[guildId]));
         }catch{
             return false;
         }
@@ -72,9 +144,40 @@ const zBotData = {
             const text = fs.readFileSync(path);
             this.zBotGuildDictionaries[guildId] = JSON.parse(text);
         }catch{
-            this.zBotGuildDictionaries[guildId] = {};
+            this.initGuildDictionaryIfUndefined(guildId);
         }
-        
+
+        //const crypto = require("crypto");
+        const uuidPropertyName = crypto.createHash("md5").update(`GUILD-DICTIONARY-${guildId}`).digest("hex");
+        const uuid = crypto.randomUUID();
+
+        this.zBotGuildDictionaries[guildId][uuidPropertyName] ??= uuid;
+
+        return true;
+    },
+
+    "saveDictionary": function(guildId){
+        const path = envGuildDictionariesDir + "/" + String(guildId) + ".json";
+
+        //const crypto = require("crypto");
+        const uuidPropertyName = crypto.createHash("md5").update(`GUILD-DICTIONARY-${guildId}`).digest("hex");
+
+        try{
+            const text = fs.readFileSync(path);
+            const uuid = this.zBotGuildDictionaries[guildId][uuidPropertyName];
+
+            if(text.includes(uuidPropertyName) && !text.includes(uuid)) return false;
+        }catch{
+            //Nothing To Do.
+        }
+
+        try{
+            //const fs = require("fs");
+            fs.writeFileSync(path, JSON.stringify(this.zBotGuildDictionaries[guildId]));
+        }catch{
+            return false;
+        }
+
         return true;
     },
 
@@ -84,43 +187,9 @@ const zBotData = {
         delete this.zBotGuildConfigs[guildId];
         delete this.zBotGuildDictionaries[guildId];
         delete this.zBotGuildPlayers[guildId];
-        delete this.zBotGuildPlayerQueues[guildId];        
-    },
-
-    "initMemberSpeakerConfigIfUndefined": function(guildId, memberId){
-        const guildConfig = this.zBotGuildConfigs[guildId];
+        delete this.zBotGuildPlayerQueues[guildId];
         
-        if(guildConfig === void 0) return;
-
-        const memberSpeakerConfigs = guildConfig.memberSpeakerConfigs[memberId];
-
-        if(memberSpeakerConfigs !== void 0) return;
-
-        const config = {
-            "engine": envDefaultSpeakerEngine,
-            "id": envDefaultSpeakerId,
-            "speedScale": envDefaultSpeakerSpeedScale,
-            "pitchScale": envDefaultSpeakerPitchScale,
-            "intonationScale": envDefaultSpeakerIntonationScale,
-        };
-
-        this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = config;
-    },
-
-    "setMemberSpeakerConfig": function(guildId, memberId, engine, id, speedScale, pitchScale, intonationScale){
-        const guildConfig = this.zBotGuildConfigs[guildId];
-        
-        if(guildConfig === void 0) return;
-        
-        const config = {
-            "engine": !engine ? envDefaultSpeakerEngine : engine,
-            "id": !id ? envDefaultSpeakerId : id,
-            "speedScale": !speedScale ? envDefaultSpeakerSpeedScale : speedScale,
-            "pitchScale": !pitchScale ? envDefaultSpeakerPitchScale : pitchScale,
-            "intonationScale": !intonationScale ? envDefaultSpeakerIntonationScale : intonationScale,
-        };
-
-        this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] = config;
+        return;
     }
 };
 

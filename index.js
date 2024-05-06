@@ -6,8 +6,6 @@ const envGuildIds = process.env.guildIds;
 const { Client, GatewayIntentBits, Events } = require("discord.js");
 
 const client = new Client({ "intents": [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
@@ -22,7 +20,7 @@ client.once(Events.ClientReady, (cl) => {
         cl.application.commands.set(cl.zBotSlashCommands, id.trim());
     }
 
-	console.log("Ready! (" + cl.user.tag + ")");
+	console.log(`Ready! (${cl.user.tag})`);
 
     return;
 });
@@ -54,6 +52,9 @@ client.on(Events.InteractionCreate, async(interaction) => {
 
         return;
     }
+
+    interaction.reply("コマンドに非対応なイベントです")
+    .catch((error) => { console.error(error); });
 
     return;
 });

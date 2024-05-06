@@ -10,20 +10,25 @@ const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
 
 async function zBotTextToSpeech(splitedText, speaker, player, queue)
 {
+    const fullTextLength = splitedText.reduce((sum, text) => sum + text.length, 0);
+    if(fullTextLength > envVoiceServerTextLengthLimit){
+        splitedText = ["文字数が多すぎます"];
+    }
+
     //const crypto = require("crypto");
     const uuid = crypto.randomUUID();
 
     enQueue(queue, uuid);
 
-    let count = 300;
-    
+    let count = 30 * 10;
+
     while(queue[0] !== uuid){
         //const { setTimeout } = require("timers/promises");
         await setTimeout(100);
 
         count--;
 
-        if(count === 0){
+        if(queue.length == 0 || count === 0){
             deQueue(queue, uuid);
             return;
         }
@@ -32,15 +37,18 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue)
     const resources = [];
 
     for(const text of splitedText){
-        if(text.length > envVoiceServerTextLengthLimit) continue;
-
         const resource = await makeSpeechResource(text, speaker);
         resources.push(resource);
     }
 
     for(const resource of resources){
         //const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
-        await entersState(player, AudioPlayerStatus.Idle, 60 * 1000);
+        await entersState(player, AudioPlayerStatus.Idle, 30 * 1000);
+
+        if(queue.length == 0 || queue[0] !== uuid){
+            deQueue(queue, uuid);
+            return;
+        }
 
         player.play(resource);
     }
@@ -58,7 +66,7 @@ async function makeSpeechResource(text, speaker){
     const server = getVoiceServers().find( (x) => { return x.engine === speaker.engine; });
 
     //const { default: axios } = require("axios");
-    const rpc = axios.create({ "baseURL": server.baseURL, "proxy": false });
+    const rpc = axios.create({ "baseURL": server.baseURL, "proxy": false, "timeout": 30 * 1000 });
 
     const response_audio_query = await rpc.post("audio_query?text=" + encodeURIComponent(text) + "&speaker=" + speaker.id, {
         headers:{ "accept": "application/json" },
