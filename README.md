@@ -51,7 +51,7 @@
 https://discordjs.guide/voice/#extra-dependencies
 
 # 導入方法
-前提としてDiscordのBotアカウントの作成及びVOICEVOXサーバーは準備できているものとします
+前提としてDiscordのBotアカウントの作成及びVOICEVOXサーバーは準備できているものとします  
 また、Node.js環境は各OSに応じた方法で準備してください
 
 Bot用のディレクトリ作成※以降はこのディレクトリで作業  
