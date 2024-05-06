@@ -1,14 +1,15 @@
 ※名称が有名なマルウェアとかぶってるので変更を検討中  
 
 # zBot
-音声変換にVOICEVOXを利用したDiscord用読み上げ（TTS）Bot  
-複数のサーバー（ギルド）でも動作するように設計してますが、基本はサーバーごとにBotを用意してください  
-VOICEVOXエンジン側は大量のリクエストを想定していないので、パブリックに公開する用途で使う場合は冗長化するなりLB挟むなりして各自対策してください
+音声変換にVOICEVOX（とその互換エンジン）を利用したDiscord用読み上げ（TTS）Bot  
+複数のサーバー（ギルド）でも動作するように設計してますが、基本的には小規模運用想定  
 
-※VOICEVOXのエンジンは付属しません、各自で用意してください  
-※DiscordのBotアカウントも各自で用意してください  
+# Policy（基本方針）
+- シンプルイズベスト（無駄に機能を追加しない・コードを肥大化させない・ファイルを増やさない）
+- ギルドごとの設定値はファイル（json）ベースでストア・リストアで管理（DBを使わない）
+- VOICEVOX側の性能・可用性の向上は別の仕組みでやってね（例えばVOICEVOXサーバーを複数台用意してLBで負荷分散させるとか？）
 
-# Slach Commnad
+# Slach Commnad（使い方）
 /connect  
 　・・・zBotを接続します  
 /list  
@@ -50,6 +51,8 @@ VOICEVOXエンジン側は大量のリクエストを想定していないので
 https://discordjs.guide/voice/#extra-dependencies
 
 # Install
+前提としてDiscordのBotアカウントの作成及びVOICEVOXサーバーは準備できているものとします。
+
 node.js環境を用意  
 Bot用のディレクトリ作成※以降はこのディレクトリで作業  
 gitコマンドでファイル一式を配置  
@@ -81,10 +84,10 @@ $ vi .env
 ```
 
 viが立ち上がるので各自の環境に合わせて編集してください  
-tokenにはBotアカウントのトークンを  
-※DiscordのBotアカウントとトークンの取得については解説しません  
+tokenにはBotアカウントのトークンを    
 serverIdsには対象サーバーのIDをセミコロン区切りで記載  
 voiceServersにはhttp://[ホスト名]:[ポート]?engine=[エンジン名]の形で記載  
+
 ※VOICEVOX互換のAPIならセミコロン区切りで複数指定可能、[エンジン名]は同じものを指定しないでください  
 ※/listコマンド等、話者の表記にも使用されますので規約に準拠するためにVOICEVOXやSHAREVOXなど正式名称での指定をお願いします
 ```
@@ -119,10 +122,12 @@ guildConfigsDir = "./guild_configs"
 guildDictionariesDir = "./guild_dictionaries"
 ```
 
-準備ができたら実行
+準備ができたら実行します
 ```
 $ node index.js
 ```
+
+※自分はpm2で簡易的に管理してます
 
 # Author
 kmatsumoto630823
