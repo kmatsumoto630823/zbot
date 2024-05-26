@@ -12,11 +12,13 @@ const client = new Client({ "intents": [
     GatewayIntentBits.MessageContent
 ]});
 
-client.zBotData = require("./zBotData");
+client.zBotGData = require("./zBotGData");
 client.zBotSlashCommands = require("./zBotSlashCommands");
 
 client.once(Events.ClientReady, (cl) => {
     for(const id of envGuildIds.split(";")){
+        if(id.trim() === "") continue;
+        
         cl.application.commands.set(cl.zBotSlashCommands, id.trim());
     }
 
@@ -26,7 +28,7 @@ client.once(Events.ClientReady, (cl) => {
 });
 
 client.on(Events.InteractionCreate, async(interaction) => {
-    const { zBotData, zBotSlashCommands } = interaction.client;
+    const { zBotGData, zBotSlashCommands } = interaction.client;
 
     const command = zBotSlashCommands.find(
         (x) => { return x.name === interaction.commandName; }
@@ -40,14 +42,14 @@ client.on(Events.InteractionCreate, async(interaction) => {
     }
 
     if(interaction.isChatInputCommand()){
-        command.excute(interaction, zBotData)
+        command.excute(interaction, zBotGData)
         .catch((error) => { console.error(error); });
 
         return;
     }
     
     if(interaction.isAutocomplete()){
-        command.autocomplete(interaction, zBotData)
+        command.autocomplete(interaction, zBotGData)
         .catch((error) => { console.error(error); });
 
         return;
@@ -62,10 +64,10 @@ client.on(Events.InteractionCreate, async(interaction) => {
 const zBotMessageHandler = require("./zBotMessageHandler");
 
 client.on(Events.MessageCreate, async(message) => {
-    const { zBotData } = message.client;
+    const { zBotGData } = message.client;
     
     //const zBotMessageHandler = require("./zBotMessageHandler");
-    zBotMessageHandler(message, zBotData)
+    zBotMessageHandler(message, zBotGData)
     .catch((error) => { console.error(error); });
 
     return;
@@ -74,10 +76,10 @@ client.on(Events.MessageCreate, async(message) => {
 const zBotReactionHandler = require("./zBotReactionHandler");
 
 client.on(Events.MessageReactionAdd, async(reaction, user) => {
-    const { zBotData } = reaction.client;
+    const { zBotGData } = reaction.client;
     
     //const zBotReactionHandler = require("./zBotReactionHandler");
-    zBotReactionHandler(reaction, user, zBotData)
+    zBotReactionHandler(reaction, user, zBotGData)
     .catch((error) => { console.error(error); });
 
     return;

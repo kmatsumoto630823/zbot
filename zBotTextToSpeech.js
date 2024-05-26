@@ -37,7 +37,7 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue)
     const resources = [];
 
     for(const text of splitedText){
-        const resource = await makeSpeechResource(text, speaker);
+        const resource = await voiceSynthesis(text, speaker);
         resources.push(resource);
     }
 
@@ -62,7 +62,7 @@ const { default: axios } = require("axios");
 const { Readable } = require("stream");
 const { createAudioResource, StreamType } = require("@discordjs/voice");
 
-async function makeSpeechResource(text, speaker){
+async function voiceSynthesis(text, speaker){
     const server = getVoiceServers().find( (x) => { return x.engine === speaker.engine; });
 
     //const { default: axios } = require("axios");
@@ -72,14 +72,15 @@ async function makeSpeechResource(text, speaker){
         headers:{ "accept": "application/json" },
     });
 
-    if(!response_audio_query) return;
-    if(response_audio_query.status !== 200) return;
+    if(!response_audio_query || response_audio_query.status !== 200) return;
 
     const audioQuery = JSON.parse(JSON.stringify(response_audio_query.data));
 
-    audioQuery.speedScale = speaker.speedScale;
-    audioQuery.pitchScale = speaker.pitchScale;
-    audioQuery.intonationScale = speaker.intonationScale;
+    audioQuery.speedScale       = speaker.speedScale;
+    audioQuery.pitchScale       = speaker.pitchScale;
+    audioQuery.intonationScale  = speaker.intonationScale;
+    audioQuery.volumeScale      = speaker.volumeScale;
+
     audioQuery.outputSamplingRate = envSamplingRate;
 
     const response_synthesis = await rpc.post("synthesis?speaker=" + speaker.id, JSON.stringify(audioQuery), {
@@ -90,8 +91,7 @@ async function makeSpeechResource(text, speaker){
         }
     });
 
-    if(!response_synthesis) return;
-    if(response_synthesis.status !== 200) return;
+    if(!response_synthesis || response_synthesis.status !== 200) return;
 
     //const { Readable } = require("stream");
     const stream = new Readable();
@@ -106,14 +106,14 @@ async function makeSpeechResource(text, speaker){
 }
 
 function enQueue(queue, uuid){
-    if(!queue) return;
+    if(!queue || !uuid) return;
 
     queue.push(uuid);
     return;
 }
 
 function deQueue(queue, uuid){
-    if(!queue) return;
+    if(!queue || !uuid) return;
 
     const index = queue.indexOf(uuid);
 

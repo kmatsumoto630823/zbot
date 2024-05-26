@@ -11,6 +11,9 @@ const envSpeakerPitchScaleLowerLimit = Number(process.env.speakerPitchScaleLower
 const envSpeakerIntonationScaleUpperLimit = Number(process.env.speakerIntonationScaleUpperLimit);
 const envSpeakerIntonationScaleLowerLimit = Number(process.env.speakerIntonationScaleLowerLimit);
 
+const envSpeakerVolumeScaleUpperLimit = Number(process.env.speakerVolumeScaleUpperLimit);
+const envSpeakerVolumeScaleLowerLimit = Number(process.env.speakerVolumeScaleLowerLimit);
+
 const autocompleteLimit = 25;
 
 const { getVoiceConnection } = require("@discordjs/voice");
@@ -40,14 +43,9 @@ const zBotSlashCommands = [
             }
         ],
 
-        "excute": async function(interaction, zBotData){
-            const {
-                zBotGuildConfigs, 
-                zBotGuildPlayers,
-                zBotGuildPlayerQueues,
-            } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
+
             const textCannelId = interaction.options.getChannel("text").id;
             const voiceCannelId = interaction.options.getChannel("voice").id;
             const adapterCreator = interaction.guild.voiceAdapterCreator;
@@ -66,8 +64,8 @@ const zBotSlashCommands = [
     
             //const { createAudioPlayer, NoSubscriberBehavior } = require("@discordjs/voice");
             const player = createAudioPlayer({
-                behaviors: {
-                  noSubscriber: NoSubscriberBehavior.Pause,
+                "behaviors": {
+                  "noSubscriber": NoSubscriberBehavior.Pause,
                 },
             });
     
@@ -87,15 +85,14 @@ const zBotSlashCommands = [
                 return;
             }            
     
-            zBotData.restoreConfig(guildId);
-            zBotGuildConfigs[guildId].textChannelId = textCannelId;
-            zBotGuildConfigs[guildId].voiceChannelId = voiceCannelId;
+            const guildConfig = zBotGData.restoreConfig(guildId);
+            guildConfig.textChannelId = textCannelId;
+            guildConfig.voiceChannelId = voiceCannelId;
 
-            zBotData.restoreDictionary(guildId);
-            zBotGuildPlayers[guildId] = player;
-            zBotGuildPlayerQueues[guildId] = [];
+            zBotGData.restoreDictionary(guildId);
+            zBotGData.initGuildQueueIfUndefined(guildId);
 
-            await interaction.reply("こんにちは！zBotを接続しました");
+            await interaction.reply("こんにちは!zBotを接続しました");
             return;            
         }
     },
@@ -104,8 +101,8 @@ const zBotSlashCommands = [
         "name": "list",
         "description": "話者IDの一覧を表示します",
 
-        "excute": async function(interaction, zBotData){
-            let message = "";
+        "excute": async function(interaction, zBotGData){
+            let list = "";
 
             const speakers = await getSpeakersWithStyles();
 
@@ -115,10 +112,10 @@ const zBotSlashCommands = [
             };
 
             for(const speaker of speakers){
-                message += speaker.fqn + "\r\n";
+                list += speaker.fqn + "\r\n";
             }
  
-            const buffer = Buffer.from(message);
+            const buffer = Buffer.from(list);
             //const { AttachmentBuilder } = require("discord.js");
             const attachment = new AttachmentBuilder(buffer, { "name": "speakers.txt" });
 
@@ -140,9 +137,7 @@ const zBotSlashCommands = [
             }
         ],
         
-        "excute": async function(interaction, zBotData){
-            const { zBotGuildConfigs } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
         
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -176,18 +171,18 @@ const zBotSlashCommands = [
             const memberId = interaction.member.id;
             const memberName = interaction.member.displayName + "さん";
 
-            zBotData.initMemberSpeakerConfig(guildId, memberId);
+            const memberSpeakerConfig = zBotGData.initMemberSpeakerConfig(guildId, memberId);
 
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].engine = speaker.engine;
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].id = speaker.id;
+            memberSpeakerConfig.engine = speaker.engine;
+            memberSpeakerConfig.id = speaker.id;
 
-            const message = memberName + "の話者を「" + speaker.fqn + "」に変更しました";
+            const message = `${memberName}の話者を「${speaker.fqn}」に変更しました`;
         
             await interaction.reply(message);
             return;
         },
 
-        "autocomplete": async function(interaction, zBotData){
+        "autocomplete": async function(interaction, zBotGData){
             const focusedOption = interaction.options.getFocused(true);
 
             if(focusedOption.name !== "speaker"){
@@ -207,7 +202,7 @@ const zBotSlashCommands = [
             const keywords = value.trim().split("/");
 
             const filtered = speakers.filter(
-                (keywords.length === 1 && keywords[0] === "") ? (x) => { return true } :
+                //(keywords.length === 1 && keywords[0] === "") ? (x) => { return true } :
 
                 (x) => {
                     for(const keyword of keywords){
@@ -238,9 +233,7 @@ const zBotSlashCommands = [
         "name": "random",
         "description": "話者をランダムに変更します",
         
-        "excute": async function(interaction, zBotData){
-            const { zBotGuildConfigs } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
         
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -264,12 +257,12 @@ const zBotSlashCommands = [
             const randomNumber = Math.floor(Math.random() * speakers.length);
             const speaker = speakers[randomNumber];
 
-            zBotData.initMemberSpeakerConfig(guildId, memberId);
+            const memberSpeakerConfig = zBotGData.initMemberSpeakerConfig(guildId, memberId);
 
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].engine = speaker.engine;
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].id = speaker.id;
+            memberSpeakerConfig.engine = speaker.engine;
+            memberSpeakerConfig.id = speaker.id;
         
-            const message = memberName + "の話者を「" + speaker.fqn + "」に変更しました";
+            const message = `${memberName}の話者を「${speaker.fqn}」に変更しました`;
         
             await interaction.reply(message);
             return;
@@ -283,16 +276,14 @@ const zBotSlashCommands = [
             {
                 "type": 10,
                 "name": "scale",
-                "description": `話者の話速倍率を入力してください※標準は1.0、範囲は${envSpeakerSpeedScaleLowerLimit}～${envSpeakerSpeedScaleUpperLimit}で指定`,
+                "description": `話者の話速倍率を入力してください※範囲は${envSpeakerSpeedScaleLowerLimit}～${envSpeakerSpeedScaleUpperLimit}`,
                 "max_value": envSpeakerSpeedScaleUpperLimit,
                 "min_value": envSpeakerSpeedScaleLowerLimit,
                 "required": true
             }
         ],
 
-        "excute": async function(interaction, zBotData){
-            const { zBotGuildConfigs } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
         
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -306,9 +297,9 @@ const zBotSlashCommands = [
             const memberId = interaction.member.id;
             const memberName = interaction.member.displayName + "さん";
 
-            zBotData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
+            const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
-            const currentScale = zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale;
+            const currentScale = memberSpeakerConfig.speedScale;
 
             const scale = clamp(
                 interaction.options.getNumber("scale") ?? currentScale,
@@ -316,13 +307,14 @@ const zBotSlashCommands = [
                 this.options[0].max_value
             );
 
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale = scale;
+            memberSpeakerConfig.speedScale = scale;
          
             const message = 
                 memberName + "の話者を「" +
-                    "#話速:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale) + " " + 
-                    "#音高:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale) + " " +
-                    "#抑揚:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].intonationScale) +
+                    "#話速:" + String(memberSpeakerConfig.speedScale     ) + " " + 
+                    "#音高:" + String(memberSpeakerConfig.pitchScale     ) + " " +
+                    "#抑揚:" + String(memberSpeakerConfig.intonationScale) + " " +
+                    "#音量:" + String(memberSpeakerConfig.volumeScale    ) +
                 "」に変更しました"
             ;
         
@@ -338,16 +330,14 @@ const zBotSlashCommands = [
             {
                 "type": 10,
                 "name": "scale",
-                "description": `話者の音高倍率を入力してください※標準は0.0、範囲は${envSpeakerPitchScaleLowerLimit}～${envSpeakerPitchScaleUpperLimit}で指定`,
+                "description": `話者の音高倍率を入力してください※範囲は${envSpeakerPitchScaleLowerLimit}～${envSpeakerPitchScaleUpperLimit}`,
                 "max_value": envSpeakerPitchScaleUpperLimit,
                 "min_value": envSpeakerPitchScaleLowerLimit,
                 "required": true
             }
         ],
 
-        "excute": async function(interaction, zBotData){
-            const { zBotGuildConfigs } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
         
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -361,9 +351,9 @@ const zBotSlashCommands = [
             const memberId = interaction.member.id;
             const memberName = interaction.member.displayName + "さん";
 
-            zBotData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
+            const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
-            const currentScale = zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale;
+            const currentScale = memberSpeakerConfig.pitchScale;
 
             const scale = clamp(
                 interaction.options.getNumber("scale") ?? currentScale,
@@ -371,13 +361,14 @@ const zBotSlashCommands = [
                 this.options[0].max_value
             );
 
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale = scale;
+            memberSpeakerConfig.pitchScale = scale;
 
             const message = 
                 memberName + "の話者を「" +
-                    "#話速:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale) + " " + 
-                    "#音高:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale) + " " +
-                    "#抑揚:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].intonationScale) +
+                    "#話速:" + String(memberSpeakerConfig.speedScale     ) + " " + 
+                    "#音高:" + String(memberSpeakerConfig.pitchScale     ) + " " +
+                    "#抑揚:" + String(memberSpeakerConfig.intonationScale) + " " +
+                    "#音量:" + String(memberSpeakerConfig.volumeScale    ) +
                 "」に変更しました"
             ;
         
@@ -393,16 +384,14 @@ const zBotSlashCommands = [
             {
                 "type": 10,
                 "name": "scale",
-                "description": `話者の抑揚倍率を入力してください※標準は1.0、範囲は${envSpeakerIntonationScaleLowerLimit}～${envSpeakerIntonationScaleUpperLimit}で指定`,
+                "description":`話者の抑揚倍率を入力してください※範囲は${envSpeakerIntonationScaleLowerLimit}～${envSpeakerIntonationScaleUpperLimit}`,
                 "max_value": envSpeakerIntonationScaleUpperLimit,
                 "min_value": envSpeakerIntonationScaleLowerLimit,
                 "required": true
             }
         ],
 
-        "excute": async function(interaction, zBotData){
-            const { zBotGuildConfigs } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
         
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -416,9 +405,9 @@ const zBotSlashCommands = [
             const memberId = interaction.member.id;
             const memberName = interaction.member.displayName + "さん";
 
-            zBotData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
+            const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
-            const currentScale = zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].intonationScale;
+            const currentScale = memberSpeakerConfig.intonationScale;
 
             const scale = clamp(
                 interaction.options.getNumber("scale") ?? currentScale,
@@ -426,13 +415,68 @@ const zBotSlashCommands = [
                 this.options[0].max_value
             );
 
-            zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].intonationScale = scale;
+            memberSpeakerConfig.intonationScale = scale;
 
             const message = 
                 memberName + "の話者を「" +
-                    "#話速:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].speedScale) + " " + 
-                    "#音高:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].pitchScale) + " " +
-                    "#抑揚:" + String(zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].intonationScale) +
+                    "#話速:" + String(memberSpeakerConfig.speedScale     ) + " " + 
+                    "#音高:" + String(memberSpeakerConfig.pitchScale     ) + " " +
+                    "#抑揚:" + String(memberSpeakerConfig.intonationScale) + " " +
+                    "#音量:" + String(memberSpeakerConfig.volumeScale    ) +
+                "」に変更しました"
+            ;
+        
+            await interaction.reply(message);
+            return;
+        }
+    },
+
+    {
+        "name": "volume",
+        "description": "話者の音量を変更します",
+        "options": [
+            {
+                "type": 10,
+                "name": "scale",
+                "description": `話者の音量倍率を入力してください※範囲は${envSpeakerVolumeScaleLowerLimit}～${envSpeakerVolumeScaleUpperLimit}`,
+                "max_value": envSpeakerVolumeScaleUpperLimit,
+                "min_value": envSpeakerVolumeScaleLowerLimit,
+                "required": true
+            }
+        ],
+
+        "excute": async function(interaction, zBotGData){
+            const guildId = interaction.guildId;
+        
+            //const { getVoiceConnection } = require("@discordjs/voice");
+            const connection = getVoiceConnection(guildId);
+        
+            if(!connection){
+                await interaction.reply("まだ部屋にお呼ばれされてません・・・");
+                return;
+            }
+
+            const memberId = interaction.member.id;
+            const memberName = interaction.member.displayName + "さん";
+
+            const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
+
+            const currentScale = memberSpeakerConfig.volumeScale;
+
+            const scale = clamp(
+                interaction.options.getNumber("scale") ?? currentScale,
+                this.options[0].min_value,
+                this.options[0].max_value
+            );
+
+            memberSpeakerConfig.volumeScale = scale;
+
+            const message = 
+                memberName + "の話者を「" +
+                    "#話速:" + String(memberSpeakerConfig.speedScale     ) + " " + 
+                    "#音高:" + String(memberSpeakerConfig.pitchScale     ) + " " +
+                    "#抑揚:" + String(memberSpeakerConfig.intonationScale) + " " +
+                    "#音量:" + String(memberSpeakerConfig.volumeScale    ) +
                 "」に変更しました"
             ;
         
@@ -460,9 +504,7 @@ const zBotSlashCommands = [
             }
         ],
 
-        "excute": async function(interaction, zBotData){
-            const { zBotGuildDictionaries } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
 
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -473,36 +515,37 @@ const zBotSlashCommands = [
                 return;
             }
 
-            let key = (interaction.options.getString("key") ?? "").trim();
+            let key   = (interaction.options.getString("key")   ?? "").trim();
             let value = (interaction.options.getString("value") ?? "").trim();
 
             if(key === "" || value === ""){
                 await interaction.reply("keyまたはvalueが入力されてません");
                 return;
             }
+
+            const guildDictionary = zBotGData.initGuildDictionaryIfUndefined(guildId);
             
             const matches = /^<:[a-zA-Z0-9_]+:([0-9]+)>$/.exec(key);
 
             if(matches){
-                key = "<:CustomEmoji:" + matches[1] + ">";
+                key = `<:CustomEmoji:${matches[1]}>`;
             }
     
             if(value === "delete" || value === "null"){
-                if(zBotGuildDictionaries[guildId][key] === void 0){
-                    await interaction.reply("「" + key + "は辞書登録されていません");
+                if(guildDictionary[key] === void 0){
+                    await interaction.reply(`「${key}」は辞書登録されていません`);
                     return;
                 }
 
-                delete zBotGuildDictionaries[guildId][key];
-                zBotData.saveDictionary(guildId);
+                delete guildDictionary[key];
                 
-                await interaction.reply("「" + key + "」の辞書登録を解除しました");
+                await interaction.reply(`「${key}」の辞書登録を解除しました`);
                 return;
             }
     
-            zBotGuildDictionaries[guildId][key] = value;
+            guildDictionary[key] = value;
 
-            await interaction.reply("「" + key + "」を「" + value + "」に辞書登録しました");
+            await interaction.reply(`「${key}」を「${value}」に辞書登録しました`);
             return;
         }
     },
@@ -512,9 +555,7 @@ const zBotSlashCommands = [
         "description": "リアクションスタンプ読み上げの有効・無効を切り替えます",
 
         
-        "excute": async function(interaction, zBotData){
-            const { zBotGuildConfigs } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
         
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -525,10 +566,12 @@ const zBotSlashCommands = [
                 return;
             }
 
-            const current = zBotGuildConfigs[guildId].isReactionSpeach;
-            zBotGuildConfigs[guildId].isReactionSpeach = !current;
+            const guildConfig = zBotGData.initGuildConfigIfUndefined(guildId);
+
+            const current = guildConfig.isReactionSpeach;
+            guildConfig.isReactionSpeach = !current;
             
-            if(zBotGuildConfigs[guildId].isReactionSpeach){
+            if(guildConfig.isReactionSpeach){
                 await interaction.reply("リアクションスタンプの読み上げを有効にしました");
             }else{
                 await interaction.reply("リアクションスタンプの読み上げを無効にしました");
@@ -540,14 +583,9 @@ const zBotSlashCommands = [
 
     {
         "name": "export",
-        "description": "zBotの設定をエクスポートします",
+        "description": "ギルドの設定をエクスポートします",
 
-        "excute": async function(interaction, zBotData){
-            const {
-                zBotGuildConfigs, 
-                zBotGuildDictionaries,
-            } = zBotData;
-
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
 
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -558,13 +596,15 @@ const zBotSlashCommands = [
                 return;
             }
 
-            const { AttachmentBuilder } = require("discord.js");
+            const guildConfig = zBotGData.initGuildConfigIfUndefined(guildId);
+            const guildDictionary = zBotGData.initGuildDictionaryIfUndefined(guildId);
 
             const server = {
-                "config": zBotGuildConfigs[guildId],
-                "dict": zBotGuildDictionaries[guildId]
+                "config": guildConfig,
+                "dict": guildDictionary
             };
 
+            //const { AttachmentBuilder } = require("discord.js");
             const buffer = Buffer.from(JSON.stringify(server, null, 2));
             const attachment = new AttachmentBuilder(buffer, {"name": "zbot.json"});
 
@@ -577,7 +617,7 @@ const zBotSlashCommands = [
         "name" : "disconnect",
         "description": "zBotを切断します",
 
-        "excute": async function(interaction, zBotData){
+        "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
 
             //const { getVoiceConnection } = require("@discordjs/voice");
@@ -588,14 +628,15 @@ const zBotSlashCommands = [
                 return;
             }
     
+            connection.state.subscription.player.stop();
             connection.destroy();
     
-            zBotData.saveConfig(guildId);
-            zBotData.saveDictionary(guildId);
+            zBotGData.saveConfig(guildId);
+            zBotGData.saveDictionary(guildId);
             
-            zBotData.delete(guildId);
+            zBotGData.delete(guildId);
             
-            await interaction.reply("さようなら！zBotを切断します");
+            await interaction.reply("さようなら!zBotを切断します");
             return;
         }
     },
@@ -604,11 +645,11 @@ const zBotSlashCommands = [
         "name": "help",
         "description": "ヘルプを表示します",
 
-        "excute": async function(interaction, zBotData){
+        "excute": async function(interaction, zBotGData){
             let message = "";
             for(const command of zBotSlashCommands){
                 message += "/" + command.name + "\r\n";
-                message += "　・・・" + command.description + "\r\n";
+                message += "    ・・・" + command.description + "\r\n";
             }
 
             await interaction.reply(message);

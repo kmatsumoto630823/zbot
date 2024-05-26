@@ -5,7 +5,7 @@ function zBotTextPreprocessor(text, dictionary){
     text = text
         .replace(/(https?|ftp)(:\/\/[\w\/:%#\$&\?\(\)~\.=\+\-]+)/g, "")
         .replace(/<(@!?|#|@&)[0-9]+>/g, "")
-                .replace(/(@everyone|@here)/g, "")
+        .replace(/(@everyone|@here)/g, "")
     ;
 
     for(const key in dictionary){
