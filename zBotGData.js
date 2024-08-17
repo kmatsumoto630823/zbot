@@ -40,6 +40,8 @@ const zBotGData = {
     "initMemberSpeakerConfigIfUndefined": function(guildId, memberId){
         this.initGuildConfigIfUndefined(guildId);
 
+        this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId] ??= {};
+
         this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].engine ??= envDefaultSpeakerEngine;
         this.zBotGuildConfigs[guildId].memberSpeakerConfigs[memberId].id     ??= envDefaultSpeakerId;
 
