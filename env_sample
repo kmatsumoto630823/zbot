@@ -1,29 +1,41 @@
-# Edit and Rename this file to ".env"
+# Overwrite below configs with your environment.
 token = "Your token"
 serverIds = "Your server IDs separated by semicolon(;)"
 
 # voiceServers = "http://localhost:50021?engine=VOICEVOX;http://localhost:50025?engine=SHAREVOX"
 voiceServers = "http://localhost:50021?engine=VOICEVOX"
 
-voiceServerTextLengthLimit = 128
+voiceServerTextLengthLimit = 160
 
-#デフォルト -> VOICEVOX:ずんだもん（ノーマル）
+guildConfigsDir      = "./guild_configs"
+guildDictionariesDir = "./guild_dictionaries"
+
+# Default speaker configs.
 defaultSpeakerEngine = "VOICEVOX"
-defaultSpeakerId = 3 
-defaultSpeakerSpeedScale = 1.0
-defaultSpeakerPitchScale = 0.0
+defaultSpeakerId     = 3 
+
+defaultSpeakerSpeedScale      = 1.0
+defaultSpeakerPitchScale      = 0.0
 defaultSpeakerIntonationScale = 1.0
+defaultSpeakerVolumeScale     = 1.0
 
-speakerSpeedScaleUpperLimit = 2.00
-speakerSpeedScaleLowerLimit = 0.50
+# Ranges of speaker config value.
+# Do not overwrite without a reason.
+speakerSpeedScaleUpperLimit =  2.00
+speakerSpeedScaleLowerLimit =  0.50
 
-speakerPitchScaleUpperLimit = 0.15
+speakerPitchScaleUpperLimit =  0.15
 speakerPitchScaleLowerLimit = -0.15
 
-speakerIntonationScaleUpperLimit = 2.00
-speakerIntonationScaleLowerLimit = 0.00
+speakerIntonationScaleUpperLimit =  2.00
+speakerIntonationScaleLowerLimit =  0.00
 
+speakerVolumeScaleUpperLimit =  2.00
+speakerVolumeScaleLowerLimit =  0.00
+
+# oher const values
 samplingRate = 48000
-
-guildConfigsDir = "./guild_configs"
-guildDictionariesDir = "./guild_dictionaries"
+cooldownDuration = 3000
+autocompleteLimit = 25
+queueTimeout = 30000
+queryTimeout = 30000
