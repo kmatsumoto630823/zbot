@@ -2,7 +2,10 @@ require("dotenv").config();
 
 const envVoiceServers = process.env.voiceServers;
 const envVoiceServerTextLengthLimit = parseInt(process.env.voiceServerTextLengthLimit);
+
 const envSamplingRate = parseInt(process.env.samplingRate);
+const envQueueTimeout = parseInt(process.env.queueTimeout);
+const envQueryTimeout = parseInt(process.env.queryTimeout);
 
 const crypto = require("crypto");
 const { setTimeout } = require("timers/promises");
@@ -20,7 +23,7 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue)
 
     enQueue(queue, uuid);
 
-    let count = 30 * 10;
+    let count = envQueueTimeout / 100;
 
     while(queue[0] !== uuid){
         //const { setTimeout } = require("timers/promises");
@@ -66,7 +69,7 @@ async function voiceSynthesis(text, speaker){
     const server = getVoiceServers().find( (x) => { return x.engine === speaker.engine; });
 
     //const { default: axios } = require("axios");
-    const rpc = axios.create({ "baseURL": server.baseURL, "proxy": false, "timeout": 30 * 1000 });
+    const rpc = axios.create({ "baseURL": server.baseURL, "proxy": false, "timeout": envQueryTimeout });
 
     const response_audio_query = await rpc.post("audio_query?text=" + encodeURIComponent(text) + "&speaker=" + speaker.id, {
         headers:{ "accept": "application/json" },

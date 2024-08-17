@@ -24,7 +24,7 @@ const zBotGData = {
         this.zBotGuildConfigs[guildId] ??= {};
 
         this.zBotGuildConfigs[guildId].textChannelId        ??= "";
-        this.zBotGuildConfigs[guildId].voiceChannelId       ??= "";
+        //this.zBotGuildConfigs[guildId].voiceChannelId       ??= "";
         this.zBotGuildConfigs[guildId].isReactionSpeach     ??= true;
         this.zBotGuildConfigs[guildId].memberSpeakerConfigs ??= {};
 
@@ -175,7 +175,7 @@ const zBotGData = {
         return true;
     },
 
-    "delete": function(guildId){           
+    "deleteGuildData": function(guildId){           
         delete this.zBotGuildConfigs[guildId];
         delete this.zBotGuildDictionaries[guildId];
         delete this.zBotGuildQueues[guildId];
