@@ -88,35 +88,19 @@ voiceServersにはhttp://[ホスト名]:[ポート]?engine=[エンジン名]の�
 ※VOICEVOX互換のAPIならセミコロン区切りで複数指定可能、[エンジン名]は同じものを指定しないでください  
 ※/listコマンド等、話者の表記にも使用されますので規約に準拠するためにVOICEVOXやSHAREVOXなど正式名称での指定をお願いします
 ```
-# Edit and Rename this file to ".env"
+# Overwrite below configs with your environment.
 token = "Your token"
 serverIds = "Your server IDs separated by semicolon(;)"
 
 # voiceServers = "http://localhost:50021?engine=VOICEVOX;http://localhost:50025?engine=SHAREVOX"
 voiceServers = "http://localhost:50021?engine=VOICEVOX"
 
-voiceServerTextLengthLimit = 128
+voiceServerTextLengthLimit = 160
 
-#デフォルト -> VOICEVOX:ずんだもん（ノーマル）
-defaultSpeakerEngine = "VOICEVOX"
-defaultSpeakerId = 3 
-defaultSpeakerSpeedScale = 1.0
-defaultSpeakerPitchScale = 0.0
-defaultSpeakerIntonationScale = 1.0
-
-speakerSpeedScaleUpperLimit = 2.00
-speakerSpeedScaleLowerLimit = 0.50
-
-speakerPitchScaleUpperLimit = 0.15
-speakerPitchScaleLowerLimit = -0.15
-
-speakerIntonationScaleUpperLimit = 2.00
-speakerIntonationScaleLowerLimit = 0.00
-
-samplingRate = 48000
-
-guildConfigsDir = "./guild_configs"
+guildConfigsDir      = "./guild_configs"
 guildDictionariesDir = "./guild_dictionaries"
+
+～中略～
 ```
 
 準備ができたら実行します
