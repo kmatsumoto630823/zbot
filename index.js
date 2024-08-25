@@ -47,40 +47,36 @@ client.on(Events.InteractionCreate, async(interaction) => {
         return;
     }
 
-    const now = Date.now();
-    const userId = interaction.user.id;
-    
-    if(cooldowns[userId] !== void 0){
-        const expirationTime = cooldowns[userId] + envCooldownDuration;
-
-        if(now < expirationTime){
-            interaction.reply({ "content": "コマンドは間隔を空けて実行してください", "ephemeral": true })
-                .catch((error) => { console.error(error); });
-
-            return;
-        }
-    } 
-
-    cooldowns[userId] = now;
-    setTimeout(() => delete cooldowns[userId], envCooldownDuration);
-
-
     if(interaction.isChatInputCommand()){
+        const now = Date.now();
+        const userId = interaction.user.id;
+        
+        if(cooldowns[userId] !== void 0){
+            const expirationTime = cooldowns[userId] + envCooldownDuration;
+    
+            if(now < expirationTime){
+                interaction.reply({ "content": "コマンドは間隔を空けて実行してください", "ephemeral": true })
+                    .catch((error) => { console.error(error); });
+    
+                return;
+            }
+        } 
+    
+        cooldowns[userId] = now;
+        setTimeout(() => delete cooldowns[userId], envCooldownDuration);
+
         command.excute(interaction, zBotGData)
             .catch((error) => { console.error(error); });
 
         return;
     }
-    
+
     if(interaction.isAutocomplete()){
         command.autocomplete(interaction, zBotGData)
             .catch((error) => { console.error(error); });
 
         return;
     }
-
-    interaction.reply("該当するコマンドがありません")
-        .catch((error) => { console.error(error); });
 
     return;
 });
