@@ -46,7 +46,7 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue)
 
     for(const resource of resources){
         //const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
-        await entersState(player, AudioPlayerStatus.Idle, 30 * 1000);
+        await entersState(player, AudioPlayerStatus.Idle, envQueueTimeout);
 
         if(queue.length == 0 || queue[0] !== uuid){
             deQueue(queue, uuid);

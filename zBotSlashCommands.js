@@ -15,6 +15,7 @@ const envSpeakerVolumeScaleUpperLimit = Number(process.env.speakerVolumeScaleUpp
 const envSpeakerVolumeScaleLowerLimit = Number(process.env.speakerVolumeScaleLowerLimit);
 
 const envAutocompleteLimit = parseInt(process.env.autocompleteLimit);
+const envQueryTimeout = parseInt(process.env.queryTimeout);
 
 const { getVoiceConnection } = require("@discordjs/voice");
 const { joinVoiceChannel } = require("@discordjs/voice");
@@ -587,6 +588,7 @@ const zBotSlashCommands = [
                 await interaction.reply({ "content": "まだ部屋にお呼ばれされてません・・・", "ephemeral": true });
                 return;
             }
+
             const memberId = interaction.member.id;
             const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
@@ -645,6 +647,67 @@ const zBotSlashCommands = [
             return;
         },
     },
+
+    {
+        "name" : "exclude",
+        "description": "読み上げの除外パターン（正規表現）を設定します",
+        "options": [
+            {
+                "type": ApplicationCommandOptionType.String,
+                "name": "regex",
+                "description": "除外パターン（正規表現）を指定してください、使用しない場合は「none」または「null」と入力してください",
+                "required": true
+            },
+        ],
+
+        "excute": async function(interaction, zBotGData){
+            const guildId = interaction.guildId;
+
+            //const { getVoiceConnection } = require("@discordjs/voice");
+            const connection = getVoiceConnection(guildId);
+    
+            if(!connection){
+                interaction.reply("まだ部屋にお呼ばれされてません・・・");
+                return;
+            }
+
+            const guildConfig = zBotGData.initGuildConfigIfUndefined(guildId);
+
+            const regex = interaction.options.getString("regex").trim();
+            guildConfig.excludeRegEx = (regex === "none" || regex === "null") ? "(?!)" : regex;
+            
+            await interaction.reply(`読み上げの除外パターン（正規表現）を「${regex}」設定しました`);
+            return;
+        }
+    },
+
+    /*
+    {
+        //command that the author personally uses.
+        //requireed "npm install roll".
+        "name" : "dice",
+        "description": "ダイスロールします",
+        "options": [
+            {
+                "type": ApplicationCommandOptionType.String,
+                "name": "dice",
+                "description": "例：六面ダイスは1d6と入力します",
+                "required": true
+            },
+        ],
+
+        "excute": async function(interaction, zBotGData){
+            const Roll = require("roll");
+            const roll = new Roll();
+            const diceString = interaction.options.getString("dice").trim();
+
+            const diceResult = roll.validate(diceString) ? roll.roll(diceString).result : null;
+
+            await interaction.reply(`${diceString} -> ${diceResult}`);
+            return;
+        }
+    },
+    */
 
     {
         "name": "export",
@@ -748,7 +811,7 @@ async function getSpeakersWithStyles(){
         if(!engine) return;
 
         const { "default": axios } = require("axios");
-        const rpc = axios.create({ "baseURL": baseURL, "proxy": false, "timeout": 30 * 1000 });
+        const rpc = axios.create({ "baseURL": baseURL, "proxy": false, "timeout": envQueryTimeout });
 
         const response = await rpc.get("speakers", {
             headers: { "accept" : "application/json" },

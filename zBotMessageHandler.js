@@ -6,7 +6,6 @@ async function zBotMessageHandler(message, zBotGData){
     if(message.author.bot) return;
 
     const guildId = message.guildId;
-    const memberId = message.member.id;
 
     //const { getVoiceConnection } = require("@discordjs/voice");
     const connection = getVoiceConnection(guildId);
@@ -15,11 +14,14 @@ async function zBotMessageHandler(message, zBotGData){
 
     const guildConfig = zBotGData.initGuildConfigIfUndefined(guildId);
 
+    if(new RegExp(guildConfig.excludeRegEx).test(message.content)) return;
+
     const onEventTextChannelId = message.channel.id;
     const targetTextChannelId = guildConfig.textChannelId;
 
     if(onEventTextChannelId !== targetTextChannelId) return;
 
+    const memberId = message.member.id;
     const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
     const text = message.content;

@@ -8,7 +8,6 @@ async function zBotReactionHandler(reaction, user, zBotGData){
     if(reaction.count !== 1) return;
 
     const guildId = reaction.message.guildId;
-    const memberId = user.id;
 
     //const { getVoiceConnection } = require("@discordjs/voice");
     const connection = getVoiceConnection(guildId);
@@ -17,13 +16,14 @@ async function zBotReactionHandler(reaction, user, zBotGData){
 
     const guildConfig = zBotGData.initGuildConfigIfUndefined(guildId);
 
+    if(!guildConfig.isReactionSpeach) return;
+
     const onEventTextChannelId = reaction.message.channel.id;
     const targetTextChannelId = guildConfig.textChannelId;
 
     if(onEventTextChannelId !== targetTextChannelId) return;
 
-    if(!guildConfig.isReactionSpeach) return;
-
+    const memberId = user.id;
     const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
     const text = (reaction.emoji.id === null) ? reaction.emoji.name : "<:CustomEmoji:" + reaction.emoji.id + ">";

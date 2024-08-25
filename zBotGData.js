@@ -26,6 +26,7 @@ const zBotGData = {
         this.zBotGuildConfigs[guildId].textChannelId        ??= "";
         //this.zBotGuildConfigs[guildId].voiceChannelId       ??= "";
         this.zBotGuildConfigs[guildId].isReactionSpeach     ??= true;
+        this.zBotGuildConfigs[guildId].excludeRegEx         ??= "(?!)";
         this.zBotGuildConfigs[guildId].memberSpeakerConfigs ??= {};
 
         return this.zBotGuildConfigs[guildId];
