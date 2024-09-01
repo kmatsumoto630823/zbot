@@ -759,7 +759,7 @@ const zBotSlashCommands = [
             connection.state.subscription.player.stop();
             connection.destroy();
 
-            const guildConfig = zBotGData.restoreConfig(guildId);
+            //const guildConfig = zBotGData.restoreConfig(guildId);
             guildConfig.textChannelId = "";
             //guildConfig.voiceChannelId = "";
     
