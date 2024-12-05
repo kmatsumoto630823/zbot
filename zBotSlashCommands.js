@@ -15,7 +15,6 @@ const envSpeakerVolumeScaleUpperLimit = Number(process.env.speakerVolumeScaleUpp
 const envSpeakerVolumeScaleLowerLimit = Number(process.env.speakerVolumeScaleLowerLimit);
 
 const envAutocompleteLimit = parseInt(process.env.autocompleteLimit);
-const envQueryTimeout = parseInt(process.env.queryTimeout);
 
 const { getVoiceConnection } = require("@discordjs/voice");
 const { joinVoiceChannel } = require("@discordjs/voice");
@@ -28,8 +27,6 @@ const { AttachmentBuilder } = require("discord.js");
 
 const zBotTextPreprocessor = require("./zBotTextPreprocessor");
 const zBotTextToSpeech = require("./zBotTextToSpeech");
-
-const { setTimeout } = require("timers/promises");
 
 const zBotSlashCommands = [
     {
@@ -97,7 +94,7 @@ const zBotSlashCommands = [
     
             const guildConfig = zBotGData.restoreConfig(guildId);
             guildConfig.textChannelId = textCannelId;
-            //guildConfig.voiceChannelId = voiceCannelId;
+            guildConfig.voiceChannelId = voiceCannelId;
 
             zBotGData.restoreDictionary(guildId);
             zBotGData.initGuildQueueIfUndefined(guildId);
@@ -507,7 +504,7 @@ const zBotSlashCommands = [
             {
                 "type": ApplicationCommandOptionType.String,
                 "name": "value",
-                "description": "読みを入力してください、登録解除する場合は「delete」または「null」と入力してください",
+                "description": "読みを入力してください、登録解除する場合は「null」と入力してください",
                 "required": true
             }
         ],
@@ -539,7 +536,7 @@ const zBotSlashCommands = [
                 key = `<:CustomEmoji:${matches[1]}>`;
             }
     
-            if(value === "delete" || value === "null"){
+            if(value === "null" || value === key){
                 if(guildDictionary[key] === void 0){
                     await interaction.reply(`「${key}」は辞書登録されていません`);
                     return;
@@ -560,7 +557,7 @@ const zBotSlashCommands = [
 
 
     {
-        "name": "stealth",
+        "name": "ghost",
         "description": "隠れてそっと発言します",
         "options": [
             {
@@ -569,13 +566,6 @@ const zBotSlashCommands = [
                 "description": "隠れてそっと発言したいコメントを入力してください",
                 "required": true
             },
-
-            {
-                "type": ApplicationCommandOptionType.Integer,
-                "name": "delay",
-                "description": "発言を遅らせたい秒数を指定してください",
-                "required": false
-            }
         ],
 
         "excute": async function(interaction, zBotGData){
@@ -593,7 +583,6 @@ const zBotSlashCommands = [
             const memberSpeakerConfig = zBotGData.initMemberSpeakerConfigIfUndefined(guildId, memberId);
 
             const text = (interaction.options.getString("sentence") ?? "").trim();
-            const delayTime = interaction.options.getInteger("delay") ?? 0;
 
             const dictionary = zBotGData.initGuildDictionaryIfUndefined(guildId);
             
@@ -605,9 +594,6 @@ const zBotSlashCommands = [
             const queue = zBotGData.initGuildQueueIfUndefined(guildId);
 
             await interaction.reply({ "content": "隠れてそっと発言します", "ephemeral": true });
-
-            //const { setTimeout } = require("timers/promises");
-            await setTimeout(delayTime * 1000);
 
             //const zBotTextToSpeech = require("./zBotTextToSpeech");
             await zBotTextToSpeech(splitedText, speaker, player, queue);
@@ -655,7 +641,7 @@ const zBotSlashCommands = [
             {
                 "type": ApplicationCommandOptionType.String,
                 "name": "regex",
-                "description": "除外パターン（正規表現）を指定してください、使用しない場合は「none」または「null」と入力してください",
+                "description": "除外パターン（正規表現）を指定してください、使用しない場合は「null」と入力してください",
                 "required": true
             },
         ],
@@ -674,40 +660,12 @@ const zBotSlashCommands = [
             const guildConfig = zBotGData.initGuildConfigIfUndefined(guildId);
 
             const regex = interaction.options.getString("regex").trim();
-            guildConfig.excludeRegEx = (regex === "none" || regex === "null") ? "(?!)" : regex;
+            guildConfig.excludeRegEx = (regex === "null") ? "(?!)" : regex;
             
             await interaction.reply(`読み上げの除外パターン（正規表現）を「${regex}」設定しました`);
             return;
         }
     },
-
-    /*
-    {
-        //command that the author personally uses.
-        //requireed "npm install roll".
-        "name" : "dice",
-        "description": "ダイスロールします",
-        "options": [
-            {
-                "type": ApplicationCommandOptionType.String,
-                "name": "dice",
-                "description": "例：六面ダイスは1d6と入力します",
-                "required": true
-            },
-        ],
-
-        "excute": async function(interaction, zBotGData){
-            const Roll = require("roll");
-            const roll = new Roll();
-            const diceString = interaction.options.getString("dice").trim();
-
-            const diceResult = roll.validate(diceString) ? roll.roll(diceString).result : null;
-
-            await interaction.reply(`${diceString} -> ${diceResult}`);
-            return;
-        }
-    },
-    */
 
     {
         "name": "export",
@@ -758,10 +716,6 @@ const zBotSlashCommands = [
     
             connection.state.subscription.player.stop();
             connection.destroy();
-
-            //const guildConfig = zBotGData.restoreConfig(guildId);
-            //guildConfig.textChannelId = "";
-            //guildConfig.voiceChannelId = "";
     
             zBotGData.saveConfig(guildId);
             zBotGData.saveDictionary(guildId);
@@ -810,17 +764,13 @@ async function getSpeakersWithStyles(){
 
         if(!engine) return;
 
-        const { "default": axios } = require("axios");
-        const rpc = axios.create({ "baseURL": baseURL, "proxy": false, "timeout": envQueryTimeout });
-
-        const response = await rpc.get("speakers", {
+        const response = await fetch(baseURL + "/speakers", {
             headers: { "accept" : "application/json" },
         });
 
-        if(!response) return;
-        if(response.status !== 200) return;
+        if(!response.ok) return;
         
-        const speakers = JSON.parse(JSON.stringify(response.data));
+        const speakers = await response.json();
 
         for(const speaker of speakers){
             for(const style of speaker.styles){

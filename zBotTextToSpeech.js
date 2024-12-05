@@ -5,17 +5,16 @@ const envVoiceServerTextLengthLimit = parseInt(process.env.voiceServerTextLength
 
 const envSamplingRate = parseInt(process.env.samplingRate);
 const envQueueTimeout = parseInt(process.env.queueTimeout);
-const envQueryTimeout = parseInt(process.env.queryTimeout);
 
 const crypto = require("crypto");
 const { setTimeout } = require("timers/promises");
 const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
 
-async function zBotTextToSpeech(splitedText, speaker, player, queue)
-{
+async function zBotTextToSpeech(splitedText, speaker, player, queue){
     const fullTextLength = splitedText.reduce((sum, text) => sum + text.length, 0);
+    
     if(fullTextLength > envVoiceServerTextLengthLimit){
-        splitedText = ["文字数が多すぎます"];
+        splitedText = ["文字数が多すぎるので読みません"];
     }
 
     //const crypto = require("crypto");
@@ -61,23 +60,22 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue)
     return;
 }
 
-const { default: axios } = require("axios");
 const { Readable } = require("stream");
 const { createAudioResource, StreamType } = require("@discordjs/voice");
 
 async function voiceSynthesis(text, speaker){
     const server = getVoiceServers().find( (x) => { return x.engine === speaker.engine; });
 
-    //const { default: axios } = require("axios");
-    const rpc = axios.create({ "baseURL": server.baseURL, "proxy": false, "timeout": envQueryTimeout });
-
-    const response_audio_query = await rpc.post("audio_query?text=" + encodeURIComponent(text) + "&speaker=" + speaker.id, {
-        headers:{ "accept": "application/json" },
+    const response_audio_query = await fetch(server.baseURL + "/audio_query?text=" + encodeURIComponent(text) + "&speaker=" + speaker.id, {
+        method: "POST",
+        headers:{ "accept": "application/json" }
     });
 
-    if(!response_audio_query || response_audio_query.status !== 200) return;
+    if(!response_audio_query.ok) return;
 
-    const audioQuery = JSON.parse(JSON.stringify(response_audio_query.data));
+    const audioQuery = await response_audio_query.json();
+
+    //console.log(JSON.stringify(audioQuery));
 
     audioQuery.speedScale       = speaker.speedScale;
     audioQuery.pitchScale       = speaker.pitchScale;
@@ -86,20 +84,18 @@ async function voiceSynthesis(text, speaker){
 
     audioQuery.outputSamplingRate = envSamplingRate;
 
-    const response_synthesis = await rpc.post("synthesis?speaker=" + speaker.id, JSON.stringify(audioQuery), {
-        responseType: "arraybuffer",
-        headers: {
-            "accept": "audio/wav",
-            "Content-Type": "application/json"
-        }
+    const response_synthesis = await fetch(server.baseURL + "/synthesis?speaker=" + speaker.id, {
+        method: "POST",
+        headers: { "accept": "audio/wav", "Content-Type": "application/json" },
+        body: JSON.stringify(audioQuery)
     });
 
-    if(!response_synthesis || response_synthesis.status !== 200) return;
+    if(!response_synthesis.ok) return;
 
     //const { Readable } = require("stream");
     const stream = new Readable();
 
-    stream.push(response_synthesis.data);
+    stream.push(Buffer.from(await response_synthesis.arrayBuffer()));
     stream.push(null);
 
     //const { createAudioResource, StreamType } = require("@discordjs/voice");

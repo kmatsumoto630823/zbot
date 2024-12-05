@@ -59,6 +59,7 @@ function zBotTextPreprocessor(text, dictionary){
     
     for(const splited of text.split("\0")){
         if(splited === "") continue;
+        
         splitedText.push(splited);
     }
 

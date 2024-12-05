@@ -16,8 +16,9 @@ const client = new Client({ "intents": [
 
 client.zBotGData = require("./zBotGData");
 client.zBotSlashCommands = require("./zBotSlashCommands");
-
 client.cooldowns = {};
+
+//const { generateDependencyReport } = require('@discordjs/voice');
 
 client.once(Events.ClientReady, (cl) => {
     for(const splited of envGuildIds.split(";")){
@@ -28,6 +29,7 @@ client.once(Events.ClientReady, (cl) => {
         cl.application.commands.set(cl.zBotSlashCommands, guildId);
     }
 
+    //console.log(generateDependencyReport());
 	console.log(`Ready! (${cl.user.tag})`);
 
     return;
