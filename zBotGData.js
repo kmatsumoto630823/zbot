@@ -88,6 +88,10 @@ const zBotGData = {
 
     "restoreConfig": function(guildId){
         const path = envGuildConfigsDir + "/" + String(guildId) + ".json";
+
+        //const crypto = require("crypto");
+        const uuidPropertyName = crypto.createHash("md5").update(`GUILD-CONFIG-${guildId}`).digest("hex");
+        const uuid = crypto.randomUUID();
     
         try{
             //const fs = require("fs");
@@ -97,13 +101,10 @@ const zBotGData = {
             this.initGuildConfigIfUndefined(guildId);
         }
 
-        //const crypto = require("crypto");
-        const uuidPropertyName = crypto.createHash("md5").update(`GUILD-CONFIG-${guildId}`).digest("hex");
-        const uuid = crypto.randomUUID();
-
         this.zBotGuildConfigs[guildId][uuidPropertyName] ??= uuid;
 
-        return this.zBotGuildConfigs[guildId];
+        //return this.zBotGuildConfigs[guildId];
+        return true;
     },
 
     "saveConfig": function(guildId){
@@ -111,17 +112,14 @@ const zBotGData = {
 
         //const crypto = require("crypto");
         const uuidPropertyName = crypto.createHash("md5").update(`GUILD-CONFIG-${guildId}`).digest("hex");
+        const uuid = this.zBotGuildConfigs[guildId][uuidPropertyName];
 
         try{
+            //const fs = require("fs");
             const text = fs.readFileSync(path);
-            const uuid = this.zBotGuildConfigs[guildId][uuidPropertyName];
 
             if(text.includes(uuidPropertyName) && !text.includes(uuid)) return false;
-        }catch{
-            //Nothing To Do.
-        }
-    
-        try{
+
             //const fs = require("fs");
             fs.writeFileSync(path, JSON.stringify(this.zBotGuildConfigs[guildId]));
         }catch{
@@ -133,6 +131,10 @@ const zBotGData = {
 
     "restoreDictionary": function(guildId){
         const path = envGuildDictionariesDir + "/" + String(guildId) + ".json";
+
+       //const crypto = require("crypto");
+       const uuidPropertyName = crypto.createHash("md5").update(`GUILD-DICTIONARY-${guildId}`).digest("hex");
+       const uuid = crypto.randomUUID();
     
         try{
             //const fs = require("fs");
@@ -142,13 +144,10 @@ const zBotGData = {
             this.initGuildDictionaryIfUndefined(guildId);
         }
 
-        //const crypto = require("crypto");
-        const uuidPropertyName = crypto.createHash("md5").update(`GUILD-DICTIONARY-${guildId}`).digest("hex");
-        const uuid = crypto.randomUUID();
-
         this.zBotGuildDictionaries[guildId][uuidPropertyName] ??= uuid;
 
-        return this.zBotGuildDictionaries[guildId];
+        //return this.zBotGuildDictionaries[guildId];
+        return true;
     },
 
     "saveDictionary": function(guildId){
@@ -156,17 +155,14 @@ const zBotGData = {
 
         //const crypto = require("crypto");
         const uuidPropertyName = crypto.createHash("md5").update(`GUILD-DICTIONARY-${guildId}`).digest("hex");
+        const uuid = this.zBotGuildDictionaries[guildId][uuidPropertyName];
 
         try{
+            //const fs = require("fs");
             const text = fs.readFileSync(path);
-            const uuid = this.zBotGuildDictionaries[guildId][uuidPropertyName];
 
             if(text.includes(uuidPropertyName) && !text.includes(uuid)) return false;
-        }catch{
-            //Nothing To Do.
-        }
 
-        try{
             //const fs = require("fs");
             fs.writeFileSync(path, JSON.stringify(this.zBotGuildDictionaries[guildId]));
         }catch{

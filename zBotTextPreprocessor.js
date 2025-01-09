@@ -3,9 +3,8 @@ const emojiRegex = require("./utils/emojiRegex");
 
 function zBotTextPreprocessor(text, dictionary){
     text = text
-        .replace(/(https?|ftp)(:\/\/[\w\/:%#\$&\?\(\)~\.\,=\+\-]+)/g, "")
-        .replace(/<(@!?|#|@&)[0-9]+>/g, "")
-        .replace(/(@everyone|@here)/g, "")
+        .replace(/[a-zA-Z]*:\/\/\S*/g, "")
+        //.replace(/<(@!?|#|@&)[a-zA-Z0-9]+>/g, "")
     ;
 
     for(const key in dictionary){

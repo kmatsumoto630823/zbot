@@ -5,6 +5,7 @@ const envVoiceServerTextLengthLimit = parseInt(process.env.voiceServerTextLength
 
 const envSamplingRate = parseInt(process.env.samplingRate);
 const envQueueTimeout = parseInt(process.env.queueTimeout);
+const envQueueTimeoutInterval = parseInt(process.env.queueTimeoutInterval);
 
 const crypto = require("crypto");
 const { setTimeout } = require("timers/promises");
@@ -14,7 +15,7 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue){
     const fullTextLength = splitedText.reduce((sum, text) => sum + text.length, 0);
     
     if(fullTextLength > envVoiceServerTextLengthLimit){
-        splitedText = ["文字数が多すぎるので読みません"];
+        splitedText = ["文字数が多すぎるので読み上げません"];
     }
 
     //const crypto = require("crypto");
@@ -22,18 +23,22 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue){
 
     enQueue(queue, uuid);
 
-    let count = envQueueTimeout / 100;
+    let count = Math.floor(envQueueTimeout / envQueueTimeoutInterval);
 
     while(queue[0] !== uuid){
-        //const { setTimeout } = require("timers/promises");
-        await setTimeout(100);
-
-        count--;
-
-        if(queue.length == 0 || count === 0){
+        if(count === 0){
             deQueue(queue, uuid);
             return;
         }
+
+        //const { setTimeout } = require("timers/promises");
+        await setTimeout(envQueueTimeoutInterval);
+
+        if(queue.length === 0){
+            return;
+        }
+
+        count--;
     }
 
     const resources = [];
@@ -47,7 +52,11 @@ async function zBotTextToSpeech(splitedText, speaker, player, queue){
         //const { entersState, AudioPlayerStatus } = require("@discordjs/voice");
         await entersState(player, AudioPlayerStatus.Idle, envQueueTimeout);
 
-        if(queue.length == 0 || queue[0] !== uuid){
+        if(queue.length == 0){
+            return;
+        }
+
+        if(queue[0] !== uuid){
             deQueue(queue, uuid);
             return;
         }
@@ -74,8 +83,6 @@ async function voiceSynthesis(text, speaker){
     if(!response_audio_query.ok) return;
 
     const audioQuery = await response_audio_query.json();
-
-    //console.log(JSON.stringify(audioQuery));
 
     audioQuery.speedScale       = speaker.speedScale;
     audioQuery.pitchScale       = speaker.pitchScale;
@@ -129,9 +136,7 @@ function getVoiceServers(){
     for(const splited of envVoiceServers.split(";")){
         const url = new URL(splited.trim());
 
-        const engine = 
-            url.searchParams.has("engine") ? url.searchParams.get("engine") : null;
-            
+        const engine =  url.searchParams.get("engine");
         const baseURL = url.origin;
 
         if(engine === null) return null;

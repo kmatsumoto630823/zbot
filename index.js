@@ -18,7 +18,7 @@ client.zBotGData = require("./zBotGData");
 client.zBotSlashCommands = require("./zBotSlashCommands");
 client.cooldowns = {};
 
-//const { generateDependencyReport } = require('@discordjs/voice');
+const { generateDependencyReport } = require('@discordjs/voice');
 
 client.once(Events.ClientReady, (cl) => {
     for(const splited of envGuildIds.split(";")){
@@ -29,7 +29,7 @@ client.once(Events.ClientReady, (cl) => {
         cl.application.commands.set(cl.zBotSlashCommands, guildId);
     }
 
-    //console.log(generateDependencyReport());
+    console.log(generateDependencyReport());
 	console.log(`Ready! (${cl.user.tag})`);
 
     return;
@@ -43,7 +43,7 @@ client.on(Events.InteractionCreate, async(interaction) => {
     );
 
     if(!command){
-        interaction.reply("コマンドにバインドされた処理がありません")
+        interaction.reply("コマンドに紐付けされた処理がありません")
             .catch((error) => { console.error(error); });
 
         return;
@@ -106,5 +106,7 @@ client.on(Events.MessageReactionAdd, async(reaction, user) => {
 
     return;
 });
+
+
 
 client.login(envToken); 

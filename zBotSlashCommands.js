@@ -31,7 +31,7 @@ const zBotTextToSpeech = require("./zBotTextToSpeech");
 const zBotSlashCommands = [
     {
         "name": "connect",
-        "description": "ボットを接続します",
+        "description": "読み上げボットを接続します",
         "options": [
             {
                 "type": ApplicationCommandOptionType.Channel,
@@ -92,14 +92,17 @@ const zBotSlashCommands = [
                 return;
             }            
     
-            const guildConfig = zBotGData.restoreConfig(guildId);
+            //const guildConfig = zBotGData.restoreConfig(guildId);
+            zBotGData.restoreConfig(guildId);
+            const guildConfig = zBotGData.initGuildConfigIfUndefined(guildId);
+            
             guildConfig.textChannelId = textCannelId;
             guildConfig.voiceChannelId = voiceCannelId;
 
             zBotGData.restoreDictionary(guildId);
             zBotGData.initGuildQueueIfUndefined(guildId);
 
-            await interaction.reply("こんにちは!zBotを接続しました");
+            await interaction.reply("こんにちは!ボットを接続しました");
             return;            
         }
     },
@@ -668,6 +671,32 @@ const zBotSlashCommands = [
     },
 
     {
+        //command that the author personally uses.
+        //requireed "npm install roll".
+        "name" : "dice",
+        "description": "ダイスロールします",
+        "options": [
+            {
+                "type": ApplicationCommandOptionType.String,
+                "name": "dice",
+                "description": "例：六面ダイスは1d6と入力します",
+                "required": true
+            },
+        ],
+
+        "excute": async function(interaction, zBotGData){
+            const Roll = require("roll");
+            const roll = new Roll();
+            const diceString = interaction.options.getString("dice").trim();
+
+            const diceResult = roll.validate(diceString) ? roll.roll(diceString).result : null;
+
+            await interaction.reply(`${diceString} -> ${diceResult}`);
+            return;
+        }
+    },
+
+    {
         "name": "export",
         "description": "ギルドの設定をエクスポートします",
 
@@ -694,14 +723,14 @@ const zBotSlashCommands = [
             const buffer = Buffer.from(JSON.stringify(server, null, 2));
             const attachment = new AttachmentBuilder(buffer, {"name": "zbot.json"});
 
-            await interaction.reply({ "content": "zBotの設定をエクスポートしました", "files": [attachment] });
+            await interaction.reply({ "content": "設定をエクスポートしました", "files": [attachment] });
             return;
         }
     },
 
     {
         "name" : "disconnect",
-        "description": "ボットを切断します",
+        "description": "設定の保存後、ボットを切断します",
 
         "excute": async function(interaction, zBotGData){
             const guildId = interaction.guildId;
@@ -722,7 +751,7 @@ const zBotSlashCommands = [
             
             zBotGData.deleteGuildData(guildId);
             
-            await interaction.reply("さようなら!zBotを切断します");
+            await interaction.reply("さようなら!ボットを切断します");
             return;
         }
     },
