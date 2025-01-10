@@ -4,7 +4,7 @@ const emojiRegex = require("./utils/emojiRegex");
 function zBotTextPreprocessor(text, dictionary){
     text = text
         .replace(/[a-zA-Z]*:\/\/\S*/g, "")
-        //.replace(/<(@!?|#|@&)[a-zA-Z0-9]+>/g, "")
+        .replace(/<(@!?|#|@&)[a-zA-Z0-9]+>/g, "")
     ;
 
     for(const key in dictionary){
